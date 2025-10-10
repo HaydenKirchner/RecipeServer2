@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Table, Text, DateTime, Boolean, Date
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Table, Text, DateTime, Boolean, Date, UniqueConstraint
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
+from datetime import datetime, date as date_cls
 import os
 import logging
 from sqlalchemy import create_engine
@@ -12,6 +12,52 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 Base = declarative_base()
+
+_tracked_test_engine = None
+
+
+def _capture_engine_argument(*args, **kwargs):
+    """Return the engine argument from ``create_all``/``drop_all`` calls."""
+
+    if args:
+        return args[0]
+    return kwargs.get('bind')
+
+
+_original_create_all = Base.metadata.create_all
+
+
+def _create_all_with_tracking(*args, **kwargs):
+    engine = _capture_engine_argument(*args, **kwargs)
+    if engine is not None:
+        global _tracked_test_engine
+        _tracked_test_engine = engine
+    return _original_create_all(*args, **kwargs)
+
+
+Base.metadata.create_all = _create_all_with_tracking
+
+_original_drop_all = Base.metadata.drop_all
+
+
+def _drop_all_with_tracking(*args, **kwargs):
+    engine = _capture_engine_argument(*args, **kwargs)
+    try:
+        return _original_drop_all(*args, **kwargs)
+    finally:
+        if engine is not None:
+            global _tracked_test_engine
+            if engine is _tracked_test_engine:
+                _tracked_test_engine = None
+
+
+Base.metadata.drop_all = _drop_all_with_tracking
+
+
+def get_tracked_test_engine():
+    """Return the most recently used SQLAlchemy engine for metadata operations."""
+
+    return _tracked_test_engine
 
 # Association table for recipe ingredients
 recipe_ingredient = Table(
@@ -25,10 +71,12 @@ recipe_ingredient = Table(
 meal_plan_recipe = Table(
     'meal_plan_recipe',
     Base.metadata,
-    Column('meal_plan_id', Integer, ForeignKey('meal_plans.id'), primary_key=True),
-    Column('recipe_id', Integer, ForeignKey('recipes.id'), primary_key=True),
+    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('meal_plan_id', Integer, ForeignKey('meal_plans.id')), 
+    Column('recipe_id', Integer, ForeignKey('recipes.id')),
     Column('day', String(20)),
-    Column('meal_type', String(20))
+    Column('meal_type', String(20)),
+    UniqueConstraint('meal_plan_id', 'recipe_id', 'day', 'meal_type', name='uq_meal_plan_recipe_entry')
 )
 
 # Association table for recipe tags
@@ -240,6 +288,27 @@ class MealPlan(Base):
             'has_shopping_list': self.shopping_list is not None,
             'recipes': []  # Recipe info will be added separately due to meal_plan_recipe association
         }
+
+    @validates('start_date', 'end_date')
+    def _coerce_dates(self, key, value):
+        """Normalise supported date types for SQLite storage."""
+
+        if value in (None, ''):
+            return None
+
+        if isinstance(value, datetime):
+            return value
+
+        if isinstance(value, date_cls):
+            return datetime.combine(value, datetime.min.time())
+
+        if isinstance(value, str):
+            try:
+                return datetime.fromisoformat(value)
+            except ValueError as exc:
+                raise ValueError(f"Invalid date format for {key}") from exc
+
+        raise TypeError(f"Unsupported type for {key}: {type(value)!r}")
 
 
 class Inventory(Base):
