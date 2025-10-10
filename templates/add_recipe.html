@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if edit_mode %}Edit{% else %}Add{% endif %} Recipe - Recipe Planner
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/recipes">Recipes</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {% if edit_mode %}Edit {{ recipe.title }}{% else %}Add Recipe{% endif %}
+            </li>
+        </ol>
+    </nav>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{% if edit_mode %}Edit Recipe{% else %}Add Recipe{% endif %}</h1>
+    {% if edit_mode %}
+    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecipeModal">
+        <i class="fas fa-trash-alt me-1"></i> Delete
+    </button>
+    {% endif %}
+</div>
+
+<form id="recipe-form" method="POST" action="{% if edit_mode %}/recipes/{{ recipe.id }}/edit{% else %}/recipes/add{% endif %}">
+    <div class="row">
+        <!-- Basic Information -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Basic Information</h5>
+                    
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Recipe Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required
+                               value="{{ recipe.title if recipe else '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ recipe.description if recipe else '' }}</textarea>
+                        <div class="form-text">A short description of the recipe.</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="prep_time" class="form-label">Prep Time (minutes)</label>
+                            <input type="number" class="form-control" id="prep_time" name="prep_time" min="0"
+                                   value="{{ recipe.prep_time if recipe and recipe.prep_time else '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="cook_time" class="form-label">Cook Time (minutes)</label>
+                            <input type="number" class="form-control" id="cook_time" name="cook_time" min="0"
+                                   value="{{ recipe.cook_time if recipe and recipe.cook_time else '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="servings" class="form-label">Servings</label>
+                            <input type="number" class="form-control" id="servings" name="servings" min="1"
+                                   value="{{ recipe.servings if recipe and recipe.servings else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image_url" class="form-label">Image URL</label>
+                        <input type="url" class="form-control" id="image_url" name="image_url"
+                               value="{{ recipe.image_url if recipe else '' }}">
+                        <div class="form-text">Enter a URL for an image of the completed dish.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="source_url" class="form-label">Source URL</label>
+                        <input type="url" class="form-control" id="source_url" name="source_url"
+                               value="{{ recipe.source_url if recipe else '' }}">
+                        <div class="form-text">If you got this recipe from a website, enter the URL here.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ingredients -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">Ingredients</h5>
+                        <button type="button" class="btn btn-outline-success btn-sm" id="add-ingredient-btn">
+                            <i class="fas fa-plus me-1"></i> Add Ingredient
+                        </button>
+                    </div>
+                    
+                    <div id="ingredients-container">
+                        {% if recipe and recipe.ingredients %}
+                            {% for ingredient in recipe.ingredients %}
+                                <div class="row ingredient-form-row">
+                                    <div class="col-md-2 mb-2">
+                                        <input type="number" class="form-control" name="ingredient_amount" step="0.01" min="0"
+                                               placeholder="Amount" value="{{ ingredient.amount if ingredient.amount else '' }}">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <input type="text" class="form-control" name="ingredient_unit" 
+                                               placeholder="Unit" value="{{ ingredient.unit if ingredient.unit else '' }}">
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <div class="input-group">
+                                            <span class="input-group-text p-0">
+                                                <div class="ingredient-icon">
+                                                    <img src="{{ ingredient.name|ingredient_icon }}" alt="{{ ingredient.name }}" width="32" height="32" class="ingredient-preview-icon">
+                                                </div>
+                                            </span>
+                                            <input type="text" class="form-control ingredient-name-input" name="ingredient_name" required
+                                                  placeholder="Ingredient name" value="{{ ingredient.name }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 mb-2 d-flex align-items-center">
+                                        <i class="fas fa-times-circle text-danger remove-ingredient-btn me-2" 
+                                           style="cursor: pointer;"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary preview-ingredient-btn">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Default empty ingredient row -->
+                            <div class="row ingredient-form-row">
+                                <div class="col-md-2 mb-2">
+                                    <input type="number" class="form-control" name="ingredient_amount" step="0.01" min="0"
+                                           placeholder="Amount">
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <input type="text" class="form-control" name="ingredient_unit" 
+                                           placeholder="Unit">
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <div class="input-group">
+                                        <span class="input-group-text p-0">
+                                            <div class="ingredient-icon">
+                                                <img src="/static/images/ingredients/default.svg" alt="Ingredient" width="32" height="32" class="ingredient-preview-icon">
+                                            </div>
+                                        </span>
+                                        <input type="text" class="form-control ingredient-name-input" name="ingredient_name" required
+                                               placeholder="Ingredient name">
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mb-2 d-flex align-items-center">
+                                    <i class="fas fa-times-circle text-danger remove-ingredient-btn me-2" 
+                                       style="cursor: pointer;"></i>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary preview-ingredient-btn">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="ingredient-template d-none">
+                        <div class="row ingredient-form-row">
+                            <div class="col-md-2 mb-2">
+                                <input type="number" class="form-control" name="ingredient_amount" step="0.01" min="0" 
+                                       placeholder="Amount">
+                            </div>
+                            <div class="col-md-2 mb-2">
+                                <input type="text" class="form-control" name="ingredient_unit" 
+                                       placeholder="Unit">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text p-0">
+                                        <div class="ingredient-icon">
+                                            <img src="/static/images/ingredients/default.svg" alt="Ingredient" width="32" height="32" class="ingredient-preview-icon">
+                                        </div>
+                                    </span>
+                                    <input type="text" class="form-control ingredient-name-input" name="ingredient_name" required
+                                           placeholder="Ingredient name">
+                                </div>
+                            </div>
+                            <div class="col-md-2 mb-2 d-flex align-items-center">
+                                <i class="fas fa-times-circle text-danger remove-ingredient-btn me-2" 
+                                   style="cursor: pointer;"></i>
+                                <button type="button" class="btn btn-sm btn-outline-secondary preview-ingredient-btn">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instructions -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Instructions</h5>
+                    <div class="mb-3">
+                        <label for="instructions" class="form-label">Preparation Steps</label>
+                        <textarea class="form-control" id="instructions" name="instructions" rows="8" 
+                                  placeholder="Enter the preparation steps, one per line...">{{ recipe.instructions if recipe else '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Nutrition Information -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Nutrition Information</h5>
+                    <div class="form-text mb-3">All values are per serving.</div>
+                    
+                    <div class="mb-3">
+                        <label for="calories" class="form-label">Calories</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="calories" name="calories" min="0" step="0.1"
+                                   value="{{ recipe.nutrition.calories if recipe and recipe.nutrition else '' }}">
+                            <span class="input-group-text">kcal</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="protein" class="form-label">Protein</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="protein" name="protein" min="0" step="0.1"
+                                   value="{{ recipe.nutrition.protein if recipe and recipe.nutrition else '' }}">
+                            <span class="input-group-text">g</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="carbs" class="form-label">Carbohydrates</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="carbs" name="carbs" min="0" step="0.1"
+                                   value="{{ recipe.nutrition.carbs if recipe and recipe.nutrition else '' }}">
+                            <span class="input-group-text">g</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="fat" class="form-label">Fat</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="fat" name="fat" min="0" step="0.1"
+                                   value="{{ recipe.nutrition.fat if recipe and recipe.nutrition else '' }}">
+                            <span class="input-group-text">g</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sugar" class="form-label">Sugar</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="sugar" name="sugar" min="0" step="0.1"
+                                   value="{{ recipe.nutrition.sugar if recipe and recipe.nutrition else '' }}">
+                            <span class="input-group-text">g</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sodium" class="form-label">Sodium</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="sodium" name="sodium" min="0" step="0.1"
+                                   value="{{ recipe.nutrition.sodium if recipe and recipe.nutrition else '' }}">
+                            <span class="input-group-text">mg</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="fiber" class="form-label">Fiber</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="fiber" name="fiber" min="0" step="0.1"
+                                   value="{{ recipe.nutrition.fiber if recipe and recipe.nutrition else '' }}">
+                            <span class="input-group-text">g</span>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small class="mb-0">
+                            <i class="fas fa-info-circle me-1"></i> 
+                            You can leave nutrition fields empty if you don't have this information.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save me-1"></i> 
+                        {% if edit_mode %}Update Recipe{% else %}Save Recipe{% endif %}
+                    </button>
+                    <a href="{% if edit_mode %}/recipes/{{ recipe.id }}{% else %}/recipes{% endif %}" class="btn btn-outline-secondary mt-2">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% if edit_mode %}
+<!-- Delete Recipe Modal -->
+<div class="modal fade" id="deleteRecipeModal" tabindex="-1" aria-labelledby="deleteRecipeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteRecipeModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the recipe <strong>{{ recipe.title }}</strong>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/recipes/{{ recipe.id }}/delete" method="post">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ingredients management
+        const ingredientsContainer = document.getElementById('ingredients-container');
+        const addIngredientBtn = document.getElementById('add-ingredient-btn');
+        const ingredientTemplate = document.querySelector('.ingredient-template').innerHTML;
+        
+        // Add ingredient row
+        addIngredientBtn.addEventListener('click', function() {
+            ingredientsContainer.insertAdjacentHTML('beforeend', ingredientTemplate);
+            attachRemoveHandlers();
+            attachPreviewHandlers();
+            attachNameChangeHandlers();
+        });
+        
+        // Remove ingredient row
+        function attachRemoveHandlers() {
+            document.querySelectorAll('.remove-ingredient-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Don't remove if it's the last ingredient row
+                    if (ingredientsContainer.querySelectorAll('.ingredient-form-row').length > 1) {
+                        this.closest('.ingredient-form-row').remove();
+                    } else {
+                        // Clear the inputs instead of removing
+                        const row = this.closest('.ingredient-form-row');
+                        row.querySelectorAll('input').forEach(input => input.value = '');
+                        // Reset icon to default
+                        const iconImg = row.querySelector('.ingredient-preview-icon');
+                        if (iconImg) {
+                            iconImg.src = '/static/images/ingredients/default.svg';
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Preview ingredient icons when clicking the eye button
+        function attachPreviewHandlers() {
+            document.querySelectorAll('.preview-ingredient-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const row = this.closest('.ingredient-form-row');
+                    const nameInput = row.querySelector('.ingredient-name-input');
+                    const iconImg = row.querySelector('.ingredient-preview-icon');
+                    
+                    if (nameInput && nameInput.value.trim() && iconImg) {
+                        // Fetch the appropriate icon for this ingredient
+                        fetchIngredientIcon(nameInput.value.trim(), function(iconUrl) {
+                            iconImg.src = iconUrl;
+                        });
+                    }
+                });
+            });
+        }
+        
+        // Update icons when ingredient name changes
+        function attachNameChangeHandlers() {
+            document.querySelectorAll('.ingredient-name-input').forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        const row = this.closest('.ingredient-form-row');
+                        const iconImg = row.querySelector('.ingredient-preview-icon');
+                        
+                        if (iconImg) {
+                            fetchIngredientIcon(this.value.trim(), function(iconUrl) {
+                                iconImg.src = iconUrl;
+                            });
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Fetch the right icon for an ingredient
+        function fetchIngredientIcon(ingredientName, callback) {
+            // Map of ingredient keywords to icon files - should match server-side mapping
+            const ingredientMapping = {
+                // Vegetables
+                'onion': '/static/images/ingredients/onion.svg',
+                'shallot': '/static/images/ingredients/onion.svg',
+                'garlic': '/static/images/ingredients/garlic.svg',
+                'tomato': '/static/images/ingredients/tomato.svg',
+                'potato': '/static/images/ingredients/potato.svg',
+                'potatoes': '/static/images/ingredients/potato.svg',
+                'kale': '/static/images/ingredients/kale.svg',
+                'cabbage': '/static/images/ingredients/cabbage.svg',
+                'pickle': '/static/images/ingredients/pickle.svg',
+                'cucumber': '/static/images/ingredients/pickle.svg',
+                
+                // Proteins
+                'chicken': '/static/images/ingredients/chicken.svg',
+                'beef': '/static/images/ingredients/beef.svg',
+                'steak': '/static/images/ingredients/beef.svg',
+                'sirloin': '/static/images/ingredients/beef.svg',
+                'bacon': '/static/images/ingredients/bacon.svg',
+                
+                // Dairy
+                'cream': '/static/images/ingredients/dairy.svg',
+                'sour cream': '/static/images/ingredients/dairy.svg',
+                'milk': '/static/images/ingredients/dairy.svg',
+                'butter': '/static/images/ingredients/dairy.svg',
+                'yogurt': '/static/images/ingredients/dairy.svg',
+                'cheese': '/static/images/ingredients/dairy.svg',
+                
+                // Condiments & Other
+                'vinegar': '/static/images/ingredients/vinegar.svg',
+                'salt': '/static/images/ingredients/spices.svg',
+                'pepper': '/static/images/ingredients/spices.svg',
+                'spice': '/static/images/ingredients/spices.svg',
+                'seasoning': '/static/images/ingredients/spices.svg',
+                'peppercorn': '/static/images/ingredients/spices.svg',
+                
+                // Grains
+                'rice': '/static/images/ingredients/rice.svg',
+                'pasta': '/static/images/ingredients/pasta.svg',
+                'noodle': '/static/images/ingredients/pasta.svg',
+                'spaghetti': '/static/images/ingredients/pasta.svg',
+                'macaroni': '/static/images/ingredients/pasta.svg',
+                'fettuccine': '/static/images/ingredients/pasta.svg',
+                'linguine': '/static/images/ingredients/pasta.svg',
+                'penne': '/static/images/ingredients/pasta.svg',
+                
+                // Nuts
+                'nut': '/static/images/ingredients/nuts.svg',
+                'almond': '/static/images/ingredients/nuts.svg',
+                'walnut': '/static/images/ingredients/nuts.svg',
+                'pistachio': '/static/images/ingredients/nuts.svg',
+                'peanut': '/static/images/ingredients/nuts.svg',
+                'cashew': '/static/images/ingredients/nuts.svg',
+                'pecan': '/static/images/ingredients/nuts.svg',
+                
+                // Fruits
+                'apple': '/static/images/ingredients/fruit.svg',
+                'orange': '/static/images/ingredients/fruit.svg',
+                'banana': '/static/images/ingredients/fruit.svg',
+                'cherry': '/static/images/ingredients/fruit.svg',
+                'lemon': '/static/images/ingredients/fruit.svg',
+                'lime': '/static/images/ingredients/fruit.svg',
+                'berry': '/static/images/ingredients/fruit.svg',
+                'strawberry': '/static/images/ingredients/fruit.svg',
+                'blueberry': '/static/images/ingredients/fruit.svg',
+                'raspberry': '/static/images/ingredients/fruit.svg',
+                
+                // Herbs
+                'herb': '/static/images/ingredients/herbs.svg',
+                'basil': '/static/images/ingredients/herbs.svg',
+                'mint': '/static/images/ingredients/herbs.svg',
+                'thyme': '/static/images/ingredients/herbs.svg',
+                'rosemary': '/static/images/ingredients/herbs.svg',
+                'oregano': '/static/images/ingredients/herbs.svg',
+                'parsley': '/static/images/ingredients/herbs.svg',
+                'cilantro': '/static/images/ingredients/herbs.svg',
+                'dill': '/static/images/ingredients/herbs.svg'
+            };
+            
+            // Check for exact matches first
+            const lowerName = ingredientName.toLowerCase().trim();
+            if (ingredientMapping[lowerName]) {
+                callback(ingredientMapping[lowerName]);
+                return;
+            }
+            
+            // Check if the ingredient contains any of our known ingredients
+            for (const [key, value] of Object.entries(ingredientMapping)) {
+                if (lowerName.includes(key)) {
+                    callback(value);
+                    return;
+                }
+            }
+            
+            // Default icon if no match
+            callback('/static/images/ingredients/default.svg');
+        }
+        
+        // Initialize handlers
+        attachRemoveHandlers();
+        attachPreviewHandlers();
+        attachNameChangeHandlers();
+        
+        // Form validation
+        const form = document.getElementById('recipe-form');
+        form.addEventListener('submit', function(event) {
+            // Custom validation logic can go here
+            
+            // Make sure there's at least one ingredient
+            const ingredientNames = form.querySelectorAll('input[name="ingredient_name"]');
+            let hasIngredient = false;
+            
+            ingredientNames.forEach(input => {
+                if (input.value.trim()) {
+                    hasIngredient = true;
+                }
+            });
+            
+            if (!hasIngredient) {
+                event.preventDefault();
+                alert('Please add at least one ingredient.');
+            }
+        });
+    });
+</script>
+{% endblock %}

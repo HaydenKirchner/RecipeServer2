@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Item to Shopping List{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('shopping_views.shopping_list_detail', shopping_list_id=shopping_list.id) }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <h1 class="mb-0">Add Item to {{ shopping_list.name }}</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('shopping_views.add_item', shopping_list_id=shopping_list.id) }}">
+                        <div class="mb-3">
+                            <label for="ingredient_id" class="form-label">Ingredient</label>
+                            <select class="form-select" id="ingredient_id" name="ingredient_id" required>
+                                <option value="">-- Select an ingredient --</option>
+                                {% for ingredient in ingredients %}
+                                <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" id="quantity" name="quantity" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="unit" class="form-label">Unit</label>
+                                    <input type="text" class="form-control" id="unit" name="unit" placeholder="e.g., cups, tbsp, oz">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Add to Shopping List
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 col-lg-6">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5>Adding Items</h5>
+                    <p>
+                        Add ingredients to your shopping list. You can specify the quantity and unit of measurement.
+                    </p>
+                    <p>
+                        After adding the item, you can:
+                    </p>
+                    <ul>
+                        <li>Check it off as you shop</li>
+                        <li>Find matching Walmart products</li>
+                        <li>Add it directly to your Walmart cart</li>
+                    </ul>
+                    <p>
+                        <strong>Note:</strong> If you don't see the ingredient you need, you'll need to create it first by adding a recipe that uses it.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

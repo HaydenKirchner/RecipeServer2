@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New Shopping List{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('shopping_views.shopping_lists') }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Back to Lists
+                </a>
+                <h1 class="mb-0">Create New Shopping List</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('shopping_views.add_shopping_list') }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">List Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="meal_plan_id" class="form-label">Generate From Meal Plan (Optional)</label>
+                            <select class="form-select" id="meal_plan_id" name="meal_plan_id">
+                                <option value="">-- Select a meal plan --</option>
+                                {% for meal_plan in meal_plans %}
+                                <option value="{{ meal_plan.id }}">{{ meal_plan.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                If selected, items will be automatically created from the meal plan's recipes.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Create Shopping List
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 col-lg-6">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5>About Shopping Lists</h5>
+                    <p>
+                        Shopping lists help you organize ingredients for your meal plans. 
+                        You can create a shopping list manually or generate one from a meal plan.
+                    </p>
+                    <h6>Features:</h6>
+                    <ul>
+                        <li>Add and remove ingredients</li>
+                        <li>Check off items as you shop</li>
+                        <li>Link to Walmart products</li>
+                        <li>Add items directly to your Walmart cart</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512px" height="512px" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Cabbage</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#F8F8F8" cx="256" cy="256" r="256"></circle>
+        <path d="M256,116 C330.006,116 390,175.994 390,250 C390,324.006 330.006,384 256,384 C181.994,384 122,324.006 122,250 C122,175.994 181.994,116 256,116 Z" fill="#E0E8E0"></path>
+        <path d="M256,136 C318.937,136 370,187.063 370,250 C370,312.937 318.937,364 256,364 C193.063,364 142,312.937 142,250 C142,187.063 193.063,136 256,136 Z" fill="#8B0026"></path>
+        <path d="M256,156 C307.362,156 349,197.638 349,249 C349,300.362 307.362,342 256,342 C204.638,342 163,300.362 163,249 C163,197.638 204.638,156 256,156 Z" fill="#B22222"></path>
+        <path d="M256,186 C290.794,186 319,214.206 319,249 C319,283.794 290.794,312 256,312 C221.206,312 193,283.794 193,249 C193,214.206 221.206,186 256,186 Z" fill="#DC143C"></path>
+        <path d="M256,126 L256,374" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M138,250 L374,250" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M167,167 L345,333" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M167,333 L345,167" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M191,196 L321,304" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path>
+        <path d="M191,304 L321,196" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path>
+        <path d="M216,216 L296,284" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path>
+        <path d="M216,284 L296,216" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></path>
+    </g>
+</svg>

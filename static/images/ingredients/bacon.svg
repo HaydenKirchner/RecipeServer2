@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512px" height="512px" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Bacon</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#F8EFE8" cx="256" cy="256" r="256"></circle>
+        <path d="M180,116 L362,204 L332,388 L150,300 L180,116 Z" fill="#FFA07A"></path>
+        <path d="M190,126 L355,206 L328,368 L162,288 L190,126 Z" fill="#DB7093"></path>
+        <path d="M200,134 L348,206 L326,348 L176,276 L200,134 Z" fill="#CD5C5C"></path>
+        <path d="M212,144 L340,208 L322,326 L194,264 L212,144 Z" fill="#F08080"></path>
+        <path d="M222,154 L332,210 L316,306 L208,250 L222,154 Z" fill="#FA8072"></path>
+        <path d="M234,164 L324,212 L312,284 L222,236 L234,164 Z" fill="#FFB6C1"></path>
+        <path d="M180,116 L362,204 L150,300 L180,116 Z" fill="#FFA07A" opacity="0.5"></path>
+        <path d="M210,220 L270,250 L260,290 L200,260 L210,220 Z" fill="#FFC0CB"></path>
+        <path d="M250,160 L310,190 L300,230 L240,200 L250,160 Z" fill="#FFC0CB"></path>
+        <path d="M170,250 L230,280 L220,320 L160,290 L170,250 Z" fill="#FFC0CB"></path>
+        <path d="M290,190 L350,220 L340,260 L280,230 L290,190 Z" fill="#FFC0CB"></path>
+    </g>
+</svg>

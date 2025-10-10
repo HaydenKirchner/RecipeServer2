@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Recipes - Recipe Planner{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Recipes</h1>
+    <div>
+        <a href="/recipes/add" class="btn btn-success">
+            <i class="fas fa-plus me-1"></i> Add Recipe
+        </a>
+        <a href="/scraper" class="btn btn-info ms-2">
+            <i class="fas fa-file-import me-1"></i> Import Recipe
+        </a>
+    </div>
+</div>
+
+<!-- Filter Controls -->
+<div class="card mb-4 filter-controls">
+    <div class="card-body">
+        <form id="filter-form">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="search-input" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search-input" name="search" placeholder="Search recipes..." value="{{ filters.search or '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="ingredient-input" class="form-label">Ingredient</label>
+                    <input type="text" class="form-control" id="ingredient-input" name="ingredient" placeholder="Filter by ingredient..." value="{{ filters.ingredient or '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="sort-by" class="form-label">Sort By</label>
+                    <select class="form-select" id="sort-by" name="sort_by">
+                        <option value="created_at" {% if filters.sort_by == 'created_at' %}selected{% endif %}>Date Added</option>
+                        <option value="title" {% if filters.sort_by == 'title' %}selected{% endif %}>Title</option>
+                        <option value="calories" {% if filters.sort_by == 'calories' %}selected{% endif %}>Calories</option>
+                        <option value="protein" {% if filters.sort_by == 'protein' %}selected{% endif %}>Protein</option>
+                        <option value="carbs" {% if filters.sort_by == 'carbs' %}selected{% endif %}>Carbs</option>
+                        <option value="fat" {% if filters.sort_by == 'fat' %}selected{% endif %}>Fat</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="sort-direction" class="form-label">Sort Direction</label>
+                    <select class="form-select" id="sort-direction" name="sort_direction">
+                        <option value="desc" {% if filters.sort_direction == 'desc' %}selected{% endif %}>Descending</option>
+                        <option value="asc" {% if filters.sort_direction == 'asc' %}selected{% endif %}>Ascending</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="min-calories" class="form-label">Min Calories</label>
+                    <input type="number" class="form-control" id="min-calories" name="min_calories" placeholder="Minimum" value="{{ filters.min_calories or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="max-calories" class="form-label">Max Calories</label>
+                    <input type="number" class="form-control" id="max-calories" name="max_calories" placeholder="Maximum" value="{{ filters.max_calories or '' }}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="d-grid gap-2 w-100">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i> Apply Filters
+                        </button>
+                        <button type="button" id="clear-filters" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Recipe List -->
+<div id="recipes-container">
+    {% if recipes %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for recipe in recipes %}
+                <div class="col">
+                    <div class="card recipe-card h-100 shadow-sm" onclick="window.location.href='/recipes/{{ recipe.id }}';" style="cursor: pointer;">
+                        {% if recipe.image_url %}
+                            <img src="{{ recipe.image_url }}" class="card-img-top" alt="{{ recipe.title }}">
+                        {% else %}
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 180px;">
+                                <i class="fas fa-image fa-3x text-light"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ recipe.title }}</h5>
+                            <p class="card-text text-truncate">{{ recipe.description or '' }}</p>
+                            <div class="d-flex flex-wrap">
+                                {% if recipe.prep_time or recipe.cook_time %}
+                                    <div class="recipe-info-item">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ ((recipe.prep_time or 0) + (recipe.cook_time or 0)) ~ ' min' if ((recipe.prep_time or 0) + (recipe.cook_time or 0)) > 0 else '' }}
+                                    </div>
+                                {% endif %}
+                                {% if recipe.servings %}
+                                    <div class="recipe-info-item">
+                                        <i class="fas fa-users me-1"></i>
+                                        {{ recipe.servings }} servings
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% if recipe.nutrition %}
+                                <div class="mt-2">
+                                    {% if recipe.nutrition.calories %}
+                                        <span class="badge bg-primary nutrition-badge">{{ recipe.nutrition.calories|round|int }} cal</span>
+                                    {% endif %}
+                                    {% if recipe.nutrition.protein %}
+                                        <span class="badge bg-success nutrition-badge">{{ recipe.nutrition.protein|round|int }}g protein</span>
+                                    {% endif %}
+                                    {% if recipe.nutrition.carbs %}
+                                        <span class="badge bg-info nutrition-badge">{{ recipe.nutrition.carbs|round|int }}g carbs</span>
+                                    {% endif %}
+                                    {% if recipe.nutrition.fat %}
+                                        <span class="badge bg-warning nutrition-badge">{{ recipe.nutrition.fat|round|int }}g fat</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <div class="d-flex justify-content-between mb-2">
+                                <a href="/recipes/{{ recipe.id }}/edit" class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="/recipes/{{ recipe.id }}/pdf" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </a>
+                            </div>
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-sm btn-outline-success add-to-meal-plan-btn" 
+                                        data-bs-toggle="modal" data-bs-target="#addToMealPlanModal" 
+                                        data-recipe-id="{{ recipe.id }}" 
+                                        data-recipe-title="{{ recipe.title }}"
+                                        onclick="event.stopPropagation();">
+                                    <i class="fas fa-calendar-plus"></i> Add to Meal Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <h4 class="alert-heading">No Recipes Found</h4>
+            <p>No recipes match your search criteria or your collection is empty.</p>
+            <hr>
+            <p class="mb-0">Try adjusting your filters or <a href="/recipes/add" class="alert-link">add a new recipe</a>.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Add to Meal Plan Modal -->
+<div class="modal fade" id="addToMealPlanModal" tabindex="-1" aria-labelledby="addToMealPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addToMealPlanModalLabel">Add to Meal Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addToMealPlanForm" method="POST">
+                    <input type="hidden" id="recipe_id" name="recipe_id">
+                    <div class="mb-3">
+                        <h6 id="recipe-title-display"></h6>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="meal_plan_select" class="form-label">Select Meal Plan</label>
+                        <select class="form-select" id="meal_plan_select" name="meal_plan_id" required>
+                            <option value="" selected disabled>-- Select a meal plan --</option>
+                            {% for meal_plan in meal_plans %}
+                                <option value="{{ meal_plan.id }}">{{ meal_plan.name }}</option>
+                            {% endfor %}
+                            <option value="new">+ Create New Meal Plan</option>
+                        </select>
+                    </div>
+                    
+                    <div id="new-meal-plan-fields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="new_meal_plan_name" class="form-label">Meal Plan Name</label>
+                            <input type="text" class="form-control" id="new_meal_plan_name" name="name" placeholder="Enter meal plan name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date">
+                        </div>
+                        <div class="mb-3">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="day_select" class="form-label">Day</label>
+                        <select class="form-select" id="day_select" name="day" required>
+                            <option value="" selected disabled>-- Select a day --</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="meal_type_select" class="form-label">Meal Type</label>
+                        <select class="form-select" id="meal_type_select" name="meal_type" required>
+                            <option value="" selected disabled>-- Select meal type --</option>
+                            <option value="Breakfast">Breakfast</option>
+                            <option value="Lunch">Lunch</option>
+                            <option value="Dinner">Dinner</option>
+                            <option value="Snack">Snack</option>
+                            <option value="Dessert">Dessert</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="create_shopping_list" name="create_shopping_list" value="true">
+                        <label class="form-check-label" for="create_shopping_list">Create/update shopping list</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveToMealPlanBtn">Add to Meal Plan</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/views/recipe-list.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize recipe list view
+        const recipeList = new RecipeListView({
+            containerId: 'recipes-container',
+            filterFormId: 'filter-form'
+        });
+        
+        // Set up Add to Meal Plan button functionality
+        const addToMealPlanBtns = document.querySelectorAll('.add-to-meal-plan-btn');
+        const addToMealPlanModal = document.getElementById('addToMealPlanModal');
+        const addToMealPlanForm = document.getElementById('addToMealPlanForm');
+        const mealPlanSelect = document.getElementById('meal_plan_select');
+        const newMealPlanFields = document.getElementById('new-meal-plan-fields');
+        const saveToMealPlanBtn = document.getElementById('saveToMealPlanBtn');
+        
+        // Show recipe title and ID in modal when button is clicked
+        addToMealPlanModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const recipeId = button.getAttribute('data-recipe-id');
+            const recipeTitle = button.getAttribute('data-recipe-title');
+            
+            document.getElementById('recipe_id').value = recipeId;
+            document.getElementById('recipe-title-display').textContent = recipeTitle;
+            
+            // Reset form
+            addToMealPlanForm.reset();
+            newMealPlanFields.style.display = 'none';
+            mealPlanSelect.value = '';
+        });
+        
+        // Toggle new meal plan fields visibility
+        mealPlanSelect.addEventListener('change', function() {
+            if (this.value === 'new') {
+                newMealPlanFields.style.display = 'block';
+                addToMealPlanForm.action = `/recipes/${document.getElementById('recipe_id').value}/add-to-new-meal-plan`;
+            } else {
+                newMealPlanFields.style.display = 'none';
+                addToMealPlanForm.action = `/recipes/${document.getElementById('recipe_id').value}/add-to-meal-plan`;
+            }
+        });
+        
+        // Handle form submission
+        saveToMealPlanBtn.addEventListener('click', function() {
+            // Basic form validation
+            if (mealPlanSelect.value === '') {
+                alert('Please select a meal plan');
+                return;
+            }
+            
+            if (mealPlanSelect.value === 'new' && document.getElementById('new_meal_plan_name').value === '') {
+                alert('Please enter a name for the new meal plan');
+                return;
+            }
+            
+            if (document.getElementById('day_select').value === '') {
+                alert('Please select a day');
+                return;
+            }
+            
+            if (document.getElementById('meal_type_select').value === '') {
+                alert('Please select a meal type');
+                return;
+            }
+            
+            // Submit the form
+            addToMealPlanForm.submit();
+        });
+    });
+</script>
+{% endblock %}

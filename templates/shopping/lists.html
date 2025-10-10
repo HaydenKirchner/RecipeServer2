@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Lists{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="mb-4">Shopping Lists</h1>
+            <p class="lead">Manage your shopping lists for meal plans</p>
+        </div>
+        <div class="col-auto align-self-center">
+            <a href="{{ url_for('shopping_views.add_shopping_list') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Shopping List
+            </a>
+        </div>
+    </div>
+
+    {% if shopping_lists %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for shopping_list in shopping_lists %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ shopping_list.name }}</h5>
+                    <p class="card-text text-muted">
+                        <small>Created: {{ shopping_list.created_at|datetime }}</small>
+                    </p>
+                    {% if shopping_list.items|length > 0 %}
+                    <p class="card-text">
+                        <span class="badge bg-primary">{{ shopping_list.items|length }} items</span>
+                    </p>
+                    {% else %}
+                    <p class="card-text">
+                        <span class="badge bg-secondary">No items</span>
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('shopping_views.shopping_list_detail', shopping_list_id=shopping_list.id) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-list-ul"></i> View List
+                        </a>
+                        <a href="{{ url_for('shopping_views.edit_shopping_list', shopping_list_id=shopping_list.id) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> You don't have any shopping lists yet. Create one to get started!
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

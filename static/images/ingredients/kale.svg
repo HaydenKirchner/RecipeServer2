@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512px" height="512px" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Kale</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#F0F8F0" cx="256" cy="256" r="256"></circle>
+        <path d="M251,142 C288.555,142 319,159.655 319,181.5 C319,203.345 288.555,221 251,221 C213.445,221 183,203.345 183,181.5 C183,159.655 213.445,142 251,142 Z" fill="#006400" transform="translate(251, 181.5) rotate(-15) translate(-251, -181.5)"></path>
+        <path d="M174,227 C211.555,227 242,248.126 242,274 C242,299.874 211.555,321 174,321 C136.445,321 106,299.874 106,274 C106,248.126 136.445,227 174,227 Z" fill="#228B22" transform="translate(174, 274) rotate(25) translate(-174, -274)"></path>
+        <path d="M297,227 C334.555,227 365,248.126 365,274 C365,299.874 334.555,321 297,321 C259.445,321 229,299.874 229,274 C229,248.126 259.445,227 297,227 Z" fill="#228B22" transform="translate(297, 274) rotate(-20) translate(-297, -274)"></path>
+        <path d="M249,265 C286.555,265 317,286.126 317,312 C317,337.874 286.555,359 249,359 C211.445,359 181,337.874 181,312 C181,286.126 211.445,265 249,265 Z" fill="#008000" transform="translate(249, 312) rotate(10) translate(-249, -312)"></path>
+        <path d="M190,327 C227.555,327 258,348.126 258,374 C258,399.874 227.555,421 190,421 C152.445,421 122,399.874 122,374 C122,348.126 152.445,327 190,327 Z" fill="#228B22" transform="translate(190, 374) rotate(-15) translate(-190, -374)"></path>
+        <path d="M310,327 C347.555,327 378,348.126 378,374 C378,399.874 347.555,421 310,421 C272.445,421 242,399.874 242,374 C242,348.126 272.445,327 310,327 Z" fill="#008000" transform="translate(310, 374) rotate(15) translate(-310, -374)"></path>
+        <path d="M255,91 C255,91 254,124 270,135 C286,146 310,130 310,130" stroke="#006400" stroke-width="6" stroke-linecap="round"></path>
+        <path d="M255,91 C255,91 261,122 246,134 C231,146 209,140 209,140" stroke="#006400" stroke-width="6" stroke-linecap="round"></path>
+    </g>
+</svg>

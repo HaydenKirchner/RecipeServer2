@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512px" height="512px" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Herbs</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#F8F8F8" cx="256" cy="256" r="256"></circle>
+        <!-- Basil leaves -->
+        <g transform="translate(160, 140)">
+            <path d="M30,20 C20,0 40,-10 60,5 C80,20 70,40 50,40 C30,40 40,40 30,20 Z" fill="#006400"></path>
+            <path d="M33,18 C25,2 40,-5 56,8 C72,21 64,37 48,37 C32,37 41,34 33,18 Z" fill="#228B22"></path>
+            
+            <path d="M70,70 C60,50 80,40 100,55 C120,70 110,90 90,90 C70,90 80,90 70,70 Z" fill="#006400"></path>
+            <path d="M73,68 C65,52 80,45 96,58 C112,71 104,87 88,87 C72,87 81,84 73,68 Z" fill="#228B22"></path>
+            
+            <path d="M30,120 C20,100 40,90 60,105 C80,120 70,140 50,140 C30,140 40,140 30,120 Z" fill="#006400"></path>
+            <path d="M33,118 C25,102 40,95 56,108 C72,121 64,137 48,137 C32,137 41,134 33,118 Z" fill="#228B22"></path>
+            
+            <!-- Stems -->
+            <path d="M40,30 L40,145 C40,155 50,165 60,165 L140,165" stroke="#2E8B57" stroke-width="6" stroke-linecap="round"></path>
+            <path d="M80,80 L80,145" stroke="#2E8B57" stroke-width="6" stroke-linecap="round"></path>
+            <path d="M45,130 L45,145" stroke="#2E8B57" stroke-width="6" stroke-linecap="round"></path>
+        </g>
+        
+        <!-- Mint Sprig -->
+        <g transform="translate(260, 180)">
+            <path d="M10,20 C0,0 20,-10 40,5 C60,20 50,40 30,40 C10,40 20,40 10,20 Z" fill="#00BFFF"></path>
+            <path d="M13,18 C5,2 20,-5 36,8 C52,21 44,37 28,37 C12,37 21,34 13,18 Z" fill="#98FB98"></path>
+            
+            <path d="M50,10 C40,-10 60,-20 80,-5 C100,10 90,30 70,30 C50,30 60,30 50,10 Z" fill="#00BFFF"></path>
+            <path d="M53,8 C45,-8 60,-15 76,-2 C92,11 84,27 68,27 C52,27 61,24 53,8 Z" fill="#98FB98"></path>
+            
+            <path d="M100,20 C90,0 110,-10 130,5 C150,20 140,40 120,40 C100,40 110,40 100,20 Z" fill="#00BFFF"></path>
+            <path d="M103,18 C95,2 110,-5 126,8 C142,21 134,37 118,37 C102,37 111,34 103,18 Z" fill="#98FB98"></path>
+            
+            <!-- Stems -->
+            <path d="M30,30 L30,125 C30,135 40,145 50,145 L130,145" stroke="#3CB371" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M70,20 L70,115" stroke="#3CB371" stroke-width="4" stroke-linecap="round"></path>
+            <path d="M115,30 L115,105" stroke="#3CB371" stroke-width="4" stroke-linecap="round"></path>
+        </g>
+    </g>
+</svg>

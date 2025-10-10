@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512px" height="512px" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Fruit</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#F8F8F8" cx="256" cy="256" r="256"></circle>
+        <!-- Apple -->
+        <path d="M180,170 C175,150 185,140 200,140 C215,140 225,150 220,170 L180,170 Z" fill="#228B22"></path>
+        <path d="M180,170 C150,180 150,240 170,250 C190,260 220,240 220,170 L180,170 Z" fill="#FF0000"></path>
+        
+        <!-- Orange -->
+        <circle cx="290" cy="180" r="40" fill="#FFA500"></circle>
+        <path d="M290,140 L290,160" stroke="#228B22" stroke-width="4" stroke-linecap="round"></path>
+        <path d="M279,142 L279,149" stroke="#964B00" stroke-width="2.5" stroke-linecap="round"></path>
+        <path d="M301,142 L301,149" stroke="#964B00" stroke-width="2.5" stroke-linecap="round"></path>
+        
+        <!-- Banana -->
+        <path d="M150,340 C180,320 210,290 240,280 C270,270 330,290 330,320 C330,350 290,360 250,350 C210,340 190,350 170,350 C150,350 120,360 150,340 Z" fill="#FFD700"></path>
+        <path d="M163,337 C190,320 214,295 240,285 C266,275 315,293 315,315 C315,337 285,347 250,338 C215,329 197,335 177,335 C157,335 136,354 163,337 Z" fill="#FFFF00"></path>
+        <path d="M150,340 L170,350" stroke="#8B4513" stroke-width="2" stroke-linecap="round"></path>
+        
+        <!-- Cherry -->
+        <circle cx="315" cy="300" r="20" fill="#DC143C"></circle>
+        <circle cx="355" cy="290" r="20" fill="#DC143C"></circle>
+        <path d="M315,280 C315,270 320,260 335,250 L345,220" stroke="#228B22" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M355,270 C355,265 350,260 342,254 L339,243" stroke="#228B22" stroke-width="3" stroke-linecap="round"></path>
+    </g>
+</svg>

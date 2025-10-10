@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512px" height="512px" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Nuts</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#F8F8F8" cx="256" cy="256" r="256"></circle>
+        <!-- Walnut -->
+        <path d="M150,150 C180,135 210,165 210,195 C210,225 180,245 150,230 C120,215 120,165 150,150 Z" fill="#8B4513"></path>
+        <path d="M153,156 C178,143 203,168 203,193 C203,218 178,235 153,223 C128,210 128,169 153,156 Z" fill="#A0522D"></path>
+        <path d="M165,170 C175,171 176,183 175,190 C174,197 165,200 156,197 C147,194 155,169 165,170 Z" fill="#D2B48C"></path>
+        
+        <!-- Almond -->
+        <ellipse transform="translate(270, 190) rotate(30) translate(-270, -190)" cx="270" cy="190" rx="45" ry="30" fill="#CD853F"></ellipse>
+        <ellipse transform="translate(270, 190) rotate(30) translate(-270, -190)" cx="270" cy="190" rx="30" ry="20" fill="#D2B48C"></ellipse>
+        
+        <!-- Peanut -->
+        <path d="M160,270 C130,280 140,340 170,350 C200,360 205,322 205,310 C205,298 190,260 160,270 Z" fill="#D2B48C"></path>
+        <ellipse cx="182" cy="275" rx="10" ry="3" fill="#A0522D"></ellipse>
+        <ellipse cx="182" cy="285" rx="8" ry="2" fill="#A0522D" transform="translate(182, 285) rotate(15) translate(-182, -285)"></ellipse>
+        <ellipse cx="182" cy="295" rx="7" ry="2" fill="#A0522D" transform="translate(182, 295) rotate(25) translate(-182, -295)"></ellipse>
+        <ellipse cx="180" cy="305" rx="6" ry="2" fill="#A0522D" transform="translate(180, 305) rotate(35) translate(-180, -305)"></ellipse>
+        <ellipse cx="178" cy="315" rx="5" ry="2" fill="#A0522D" transform="translate(178, 315) rotate(45) translate(-178, -315)"></ellipse>
+        <ellipse cx="173" cy="323" rx="4" ry="2" fill="#A0522D" transform="translate(173, 323) rotate(55) translate(-173, -323)"></ellipse>
+        <ellipse cx="166" cy="329" rx="4" ry="2" fill="#A0522D" transform="translate(166, 329) rotate(65) translate(-166, -329)"></ellipse>
+        <ellipse cx="159" cy="334" rx="3" ry="1" fill="#A0522D" transform="translate(159, 334) rotate(75) translate(-159, -334)"></ellipse>
+        
+        <!-- Cashew -->
+        <path d="M270,330 C270,310 300,295 320,300 C340,305 350,330 340,345 C330,360 300,355 290,345 C280,335 270,350 270,330 Z" fill="#F5DEB3"></path>
+        <path d="M273,328 C273,312 300,299 318,303 C336,307 345,328 336,341 C327,354 300,350 291,341 C282,332 273,345 273,328 Z" fill="#FAEBD7"></path>
+        
+        <!-- Pistachio -->
+        <path d="M362,220 C362,200 342,190 322,200 C302,210 302,240 322,250 C342,260 362,240 362,220 Z" fill="#556B2F"></path>
+        <path d="M357,218 C357,203 341,195 326,203 C311,211 311,235 326,243 C341,251 357,234 357,218 Z" fill="#9ACD32"></path>
+        <ellipse cx="333" cy="222" rx="10" ry="5" fill="#556B2F" transform="translate(333, 222) rotate(10) translate(-333, -222)"></ellipse>
+    </g>
+</svg>

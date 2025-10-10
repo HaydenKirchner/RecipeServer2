@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Recipe Planner & Scraper - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 text-center mb-5">
+        <h1 class="display-4">Welcome to Recipe Planner</h1>
+        <p class="lead">Store your favorite recipes, plan your meals, and discover new dishes</p>
+        <div class="mt-4">
+            <a href="/recipes" class="btn btn-primary btn-lg me-2">Browse Recipes</a>
+            <a href="/scraper" class="btn btn-success btn-lg">Scrape New Recipe</a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5 feature-card-container">
+    <div class="col-md-3 mb-4">
+        <div class="card feature-card shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                <h3 class="card-title h4">Find Recipes</h3>
+                <p class="card-text">Search and filter your recipe collection by ingredients, calories, or keywords.</p>
+                <a href="/recipes" class="btn btn-outline-primary">Browse Recipes</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card feature-card shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-alt fa-3x text-success mb-3"></i>
+                <h3 class="card-title h4">Plan Your Meals</h3>
+                <p class="card-text">Create weekly meal plans and organize your cooking schedule.</p>
+                <a href="/meal-plans" class="btn btn-outline-success">Meal Planning</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card feature-card shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-shopping-cart fa-3x text-warning mb-3"></i>
+                <h3 class="card-title h4">Shopping Lists</h3>
+                <p class="card-text">Generate shopping lists from meal plans and add to your Walmart cart.</p>
+                <a href="{{ url_for('shopping_views.shopping_lists') }}" class="btn btn-outline-warning">Shopping Lists</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card feature-card shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-file-import fa-3x text-info mb-3"></i>
+                <h3 class="card-title h4">Import Recipes</h3>
+                <p class="card-text">Scrape recipes from your favorite websites and save them to your collection.</p>
+                <a href="/scraper" class="btn btn-outline-info">Recipe Scraper</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Recipes Section -->
+<section class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Recent Recipes</h2>
+        <a href="/recipes" class="btn btn-outline-primary">View All</a>
+    </div>
+    
+    {% if recipes %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for recipe in recipes %}
+                <div class="col">
+                    <div class="card recipe-card h-100 shadow-sm" onclick="window.location.href='/recipes/{{ recipe.id }}';" style="cursor: pointer;">
+                        {% if recipe.image_url %}
+                            <img src="{{ recipe.image_url }}" class="card-img-top" alt="{{ recipe.title }}">
+                        {% else %}
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 180px;">
+                                <i class="fas fa-image fa-3x text-light"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ recipe.title }}</h5>
+                            <p class="card-text text-truncate">{{ recipe.description or '' }}</p>
+                            <div class="d-flex flex-wrap">
+                                {% if recipe.prep_time or recipe.cook_time %}
+                                    <div class="recipe-info-item">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ ((recipe.prep_time or 0) + (recipe.cook_time or 0)) ~ ' min' if ((recipe.prep_time or 0) + (recipe.cook_time or 0)) > 0 else '' }}
+                                    </div>
+                                {% endif %}
+                                {% if recipe.servings %}
+                                    <div class="recipe-info-item">
+                                        <i class="fas fa-users me-1"></i>
+                                        {{ recipe.servings }} servings
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% if recipe.nutrition %}
+                                <div class="mt-2">
+                                    {% if recipe.nutrition.calories %}
+                                        <span class="badge bg-primary nutrition-badge">{{ recipe.nutrition.calories|round|int }} cal</span>
+                                    {% endif %}
+                                    {% if recipe.nutrition.protein %}
+                                        <span class="badge bg-success nutrition-badge">{{ recipe.nutrition.protein|round|int }}g protein</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>No recipes found. <a href="/recipes/add" class="alert-link">Add your first recipe</a> or <a href="/scraper" class="alert-link">scrape one from the web</a>.</p>
+        </div>
+    {% endif %}
+</section>
+
+<!-- Meal Plans Section -->
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Recent Meal Plans</h2>
+        <a href="/meal-plans" class="btn btn-outline-primary">View All</a>
+    </div>
+    
+    {% if meal_plans %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for meal_plan in meal_plans %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ meal_plan.name }}</h5>
+                            {% if meal_plan.start_date or meal_plan.end_date %}
+                                <p class="card-text text-muted">
+                                    {% if meal_plan.start_date and meal_plan.end_date %}
+                                        {{ meal_plan.start_date.strftime('%Y-%m-%d') }} to {{ meal_plan.end_date.strftime('%Y-%m-%d') }}
+                                    {% elif meal_plan.start_date %}
+                                        From {{ meal_plan.start_date.strftime('%Y-%m-%d') }}
+                                    {% elif meal_plan.end_date %}
+                                        Until {{ meal_plan.end_date.strftime('%Y-%m-%d') }}
+                                    {% endif %}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="/meal-plans/{{ meal_plan.id }}" class="btn btn-outline-primary">View Plan</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>No meal plans found. <a href="/meal-plans/add" class="alert-link">Create your first meal plan</a>.</p>
+        </div>
+    {% endif %}
+</section>
+
+<!-- Shopping Lists Section -->
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Recent Shopping Lists</h2>
+        <a href="{{ url_for('shopping_views.shopping_lists') }}" class="btn btn-outline-primary">View All</a>
+    </div>
+    
+    {% if shopping_lists %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for shopping_list in shopping_lists %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ shopping_list.name }}</h5>
+                            <p class="card-text text-muted">
+                                {{ shopping_list.items|length }} items
+                                {% if shopping_list.meal_plan %}
+                                <br>From plan: {{ shopping_list.meal_plan.name }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="{{ url_for('shopping_views.shopping_list_detail', shopping_list_id=shopping_list.id) }}" class="btn btn-outline-primary">View List</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>No shopping lists found. <a href="{{ url_for('shopping_views.add_shopping_list') }}" class="alert-link">Create a shopping list</a> or <a href="{{ url_for('shopping_views.shopping_lists') }}" class="alert-link">generate one from a meal plan</a>.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any home page specific JavaScript here
+    });
+</script>
+{% endblock %}

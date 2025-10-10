@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Recipe Edit Form{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Test Recipe Edit Form</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('views.edit_recipe', recipe_id=1) }}">
+                        <h3>Test Instructions Field</h3>
+                        <p>Current instructions: <pre>{{ recipe.instructions }}</pre></p>
+                        
+                        <input type="hidden" name="title" value="Instant Pot Short Ribs (5 Ingredients)">
+                        <input type="hidden" name="prep_time" value="10">
+                        <input type="hidden" name="cook_time" value="40">
+                        <input type="hidden" name="servings" value="4">
+                        
+                        <div class="mb-3">
+                            <label for="instructions" class="form-label">Instructions</label>
+                            <textarea class="form-control" id="instructions" name="instructions" rows="5">Instructions test from form submission</textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Submit Test</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

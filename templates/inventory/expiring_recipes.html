@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Recipe Planner{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id) }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="mb-0">
+                    <i class="fas fa-clock me-2"></i> Recipes for Expiring Ingredients
+                </h1>
+            </div>
+            <p class="text-muted mt-2">Use up ingredients in <strong>{{ inventory.name }}</strong> before they expire</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3 mb-md-0">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Expiration Window</h5>
+                </div>
+                <div class="card-body">
+                    <form id="daysForm" action="{{ url_for('inventory_views.expiring_recipes', inventory_id=inventory.id) }}" method="get">
+                        <div class="mb-3">
+                            <label for="days" class="form-label">Show ingredients expiring within the next</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="days" name="days" min="1" max="30" value="{{ days }}">
+                                <span class="input-group-text">days</span>
+                            </div>
+                            <div class="form-text">Default is 7 days. Increase to see more recipes.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i> Apply
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 border-end">
+                            <div class="text-center">
+                                <div class="small text-muted">Expiring Items</div>
+                                <h3>{{ expiring_items|length }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="small text-muted">Recipes Found</div>
+                                <h3>{{ recipes|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if expiring_items %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Expiring Ingredients
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for item in expiring_items %}
+                            <div class="col-md-4 col-lg-3 mb-3">
+                                <div class="d-flex align-items-center border rounded p-2">
+                                    <div class="ingredient-icon rounded-circle bg-light p-2 me-2 flex-shrink-0">
+                                        <i class="fas {{ item.ingredient.name|lower|replace(' ', '-')|default('fa-lemon') }} text-muted"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold">{{ item.ingredient.name }}</div>
+                                        {% set days_until = (item.expiration_date - now).days %}
+                                        {% if days_until < 0 %}
+                                            <small class="text-danger">Expired {{ -days_until }} day{{ '' if -days_until == 1 else 's' }} ago</small>
+                                        {% elif days_until == 0 %}
+                                            <small class="text-danger">Expires today</small>
+                                        {% elif days_until == 1 %}
+                                            <small class="text-danger">Expires tomorrow</small>
+                                        {% else %}
+                                            <small class="text-{{ 'danger' if days_until <= 3 else 'warning' }}">Expires in {{ days_until }} days</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        {% if recipes %}
+            {% for recipe_data in recipes %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-0 shadow">
+                        {% if recipe_data.recipe.image_url %}
+                            <img src="{{ recipe_data.recipe.image_url }}" class="card-img-top" alt="{{ recipe_data.recipe.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-utensils fa-4x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-warning">Uses {{ recipe_data.expiring_ingredients|length }} expiring item{{ 's' if recipe_data.expiring_ingredients|length > 1 else '' }}</span>
+                                {% if recipe_data.recipe.prep_time and recipe_data.recipe.cook_time %}
+                                    <span class="badge bg-info">{{ recipe_data.recipe.prep_time + recipe_data.recipe.cook_time }} min</span>
+                                {% endif %}
+                            </div>
+                            
+                            <h5 class="card-title">{{ recipe_data.recipe.title }}</h5>
+                            
+                            {% if recipe_data.recipe.description %}
+                                <p class="card-text small">{{ recipe_data.recipe.description|truncate(100) }}</p>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <div class="small text-muted mb-1">Expiring Ingredients Used:</div>
+                                <div>
+                                    {% for ingredient in recipe_data.expiring_ingredients %}
+                                        <div class="d-inline-flex align-items-center border rounded p-1 me-1 mb-1">
+                                            <span class="badge bg-warning text-dark me-1">!</span>
+                                            <small>{{ ingredient.name }}</small>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            {% if recipe_data.recipe.nutrition %}
+                                <div class="d-flex justify-content-between small text-muted">
+                                    {% if recipe_data.recipe.nutrition.calories %}
+                                        <span>{{ recipe_data.recipe.nutrition.calories }} cal</span>
+                                    {% endif %}
+                                    {% if recipe_data.recipe.nutrition.protein %}
+                                        <span>{{ recipe_data.recipe.nutrition.protein }}g protein</span>
+                                    {% endif %}
+                                    {% if recipe_data.recipe.nutrition.carbs %}
+                                        <span>{{ recipe_data.recipe.nutrition.carbs }}g carbs</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <a href="{{ url_for('views.recipe_detail', recipe_id=recipe_data.recipe.id) }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-eye me-1"></i> View Recipe
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-body text-center py-5">
+                        {% if expiring_items %}
+                            <div class="display-1 text-muted mb-3">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h3 class="text-muted mb-3">No recipes found for your expiring ingredients</h3>
+                            <p>Try extending the expiration window or check different recipes.</p>
+                            <div class="mt-4">
+                                <a href="{{ url_for('inventory_views.expiring_recipes', inventory_id=inventory.id, days=days + 7) }}" class="btn btn-primary me-2">
+                                    <i class="fas fa-calendar-alt me-1"></i> Extend Window to {{ days + 7 }} Days
+                                </a>
+                                <a href="{{ url_for('views.recipes') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-utensils me-1"></i> Browse All Recipes
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="display-1 text-muted mb-3">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h3 class="text-muted mb-3">No expiring ingredients found</h3>
+                            <p>Great news! None of your ingredients are expiring within the next {{ days }} days.</p>
+                            <div class="mt-4">
+                                <a href="{{ url_for('inventory_views.expiring_recipes', inventory_id=inventory.id, days=days + 7) }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-calendar-alt me-1"></i> Look Ahead {{ days + 7 }} Days
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

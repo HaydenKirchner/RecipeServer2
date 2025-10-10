@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <title>Tomato</title>
+  <g fill="none" stroke-width="2">
+    <!-- Tomato -->
+    <circle cx="50" cy="60" r="35" fill="#E94E33" stroke="#C43E2A"/>
+    <!-- Ridges -->
+    <path d="M30,50 C40,45 60,45 70,50" stroke="#C43E2A"/>
+    <path d="M30,60 C40,55 60,55 70,60" stroke="#C43E2A"/>
+    <path d="M30,70 C40,65 60,65 70,70" stroke="#C43E2A"/>
+    <!-- Stem -->
+    <path d="M50,25 L50,15" stroke="#41924B" stroke-width="3"/>
+    <!-- Calyx/Sepals -->
+    <path d="M50,25 C40,30 25,25 30,15" stroke="#41924B" stroke-width="2" fill="#41924B"/>
+    <path d="M50,25 C55,20 65,15 70,20" stroke="#41924B" stroke-width="2" fill="#41924B"/>
+    <path d="M50,25 C60,30 75,25 70,15" stroke="#41924B" stroke-width="2" fill="#41924B"/>
+  </g>
+</svg>

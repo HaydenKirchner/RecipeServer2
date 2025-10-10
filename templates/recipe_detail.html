@@ -1,0 +1,505 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.title }} - Recipe Planner{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/recipes">Recipes</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ recipe.title }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row">
+    <!-- Recipe Header -->
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-start">
+            <h1 class="mb-3">{{ recipe.title }}</h1>
+            <div class="btn-group">
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addToMealPlanModal">
+                    <i class="fas fa-calendar-plus me-1"></i> Add to Meal Plan
+                </button>
+                <a href="/recipes/{{ recipe.id }}/edit" class="btn btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i> Edit
+                </a>
+                <a href="/recipes/{{ recipe.id }}/pdf" class="btn btn-outline-secondary">
+                    <i class="fas fa-file-pdf me-1"></i> PDF
+                </a>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRecipeModal">
+                    <i class="fas fa-trash-alt me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recipe Image and Quick Info -->
+    <div class="col-md-5 mb-4">
+        {% if recipe.image_url %}
+            <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" class="img-fluid rounded recipe-image mb-3 w-100">
+        {% else %}
+            <div class="bg-secondary d-flex align-items-center justify-content-center rounded recipe-image mb-3">
+                <i class="fas fa-image fa-4x text-light"></i>
+            </div>
+        {% endif %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Recipe Info</h5>
+                <div class="d-flex flex-wrap">
+                    {% if recipe.prep_time %}
+                        <div class="recipe-info-item">
+                            <i class="fas fa-hourglass-start me-1"></i> Prep: {{ recipe.prep_time }} min
+                        </div>
+                    {% endif %}
+                    
+                    {% if recipe.cook_time %}
+                        <div class="recipe-info-item">
+                            <i class="fas fa-fire me-1"></i> Cook: {{ recipe.cook_time }} min
+                        </div>
+                    {% endif %}
+                    
+                    {% if recipe.servings %}
+                        <div class="recipe-info-item">
+                            <i class="fas fa-users me-1"></i> Serves: 
+                            <span id="recipe-servings">{{ recipe.servings }}</span>
+                            <div class="btn-group btn-group-sm ms-2 serving-size-controls">
+                                <button type="button" class="btn btn-sm btn-outline-secondary serving-btn" data-factor="0.5">½×</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary serving-btn active" data-factor="1">1×</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary serving-btn" data-factor="2">2×</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary serving-btn" data-factor="4">4×</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if recipe.source_url %}
+                        <div class="recipe-info-item w-100 mt-2">
+                            <i class="fas fa-external-link-alt me-1"></i> 
+                            <a href="{{ recipe.source_url }}" target="_blank" rel="noopener noreferrer">Original Source</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Nutrition Information -->
+        {% if recipe.nutrition %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Nutrition Information <small class="text-muted">(per serving)</small></h5>
+                    <table class="table table-sm nutrition-table">
+                        <thead>
+                            <tr>
+                                <th>Calories</th>
+                                <th>Protein</th>
+                                <th>Carbs</th>
+                                <th>Fat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span class="nutrition-value" data-original-value="{{ recipe.nutrition.calories|round|int if recipe.nutrition.calories else 0 }}">
+                                        {{ recipe.nutrition.calories|round|int if recipe.nutrition.calories else '-' }}
+                                    </span> kcal
+                                </td>
+                                <td>
+                                    <span class="nutrition-value" data-original-value="{{ recipe.nutrition.protein|round|int if recipe.nutrition.protein else 0 }}">
+                                        {{ recipe.nutrition.protein|round|int if recipe.nutrition.protein else '-' }}
+                                    </span> g
+                                </td>
+                                <td>
+                                    <span class="nutrition-value" data-original-value="{{ recipe.nutrition.carbs|round|int if recipe.nutrition.carbs else 0 }}">
+                                        {{ recipe.nutrition.carbs|round|int if recipe.nutrition.carbs else '-' }}
+                                    </span> g
+                                </td>
+                                <td>
+                                    <span class="nutrition-value" data-original-value="{{ recipe.nutrition.fat|round|int if recipe.nutrition.fat else 0 }}">
+                                        {{ recipe.nutrition.fat|round|int if recipe.nutrition.fat else '-' }}
+                                    </span> g
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <table class="table table-sm nutrition-table mt-2">
+                        <thead>
+                            <tr>
+                                <th>Sugar</th>
+                                <th>Sodium</th>
+                                <th>Fiber</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span class="nutrition-value" data-original-value="{{ recipe.nutrition.sugar|round|int if recipe.nutrition.sugar else 0 }}">
+                                        {{ recipe.nutrition.sugar|round|int if recipe.nutrition.sugar else '-' }}
+                                    </span> g
+                                </td>
+                                <td>
+                                    <span class="nutrition-value" data-original-value="{{ recipe.nutrition.sodium|round|int if recipe.nutrition.sodium else 0 }}">
+                                        {{ recipe.nutrition.sodium|round|int if recipe.nutrition.sodium else '-' }}
+                                    </span> mg
+                                </td>
+                                <td>
+                                    <span class="nutrition-value" data-original-value="{{ recipe.nutrition.fiber|round|int if recipe.nutrition.fiber else 0 }}">
+                                        {{ recipe.nutrition.fiber|round|int if recipe.nutrition.fiber else '-' }}
+                                    </span> g
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recipe Content -->
+    <div class="col-md-7">
+        <!-- Description -->
+        {% if recipe.description %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">{{ recipe.description }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Ingredients -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Ingredients</h5>
+                {% if recipe.ingredients %}
+                    <div class="row">
+                        {% for ingredient in recipe.ingredients %}
+                            <div class="col-md-6 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="ingredient-icon me-3">
+                                        <img src="{{ ingredient.name|ingredient_icon }}" alt="{{ ingredient.name }}" width="40" height="40">
+                                    </div>
+                                    <div>
+                                        <strong>
+                                            {% if ingredient.amount %}
+                                                <span class="ingredient-amount" 
+                                                      data-ingredient-id="{{ ingredient.id }}" 
+                                                      data-amount="{{ ingredient.amount }}">
+                                                    {% if ingredient.amount == ingredient.amount|int %}
+                                                        {{ ingredient.amount|int }}
+                                                    {% else %}
+                                                        {{ ingredient.amount|round(2) }}
+                                                    {% endif %}
+                                                </span>
+                                                {{ ingredient.unit }} 
+                                            {% endif %}
+                                        </strong>
+                                        {{ ingredient.name }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No ingredients listed</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Instructions</h5>
+                {% if recipe.instructions %}
+                    <ol class="instruction-list">
+                        {% for step in recipe.instructions.split('\n') %}
+                            {% if step.strip() %}
+                                <li>{{ step.strip() }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <p class="text-muted">No instructions provided</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Recipe Modal -->
+<div class="modal fade" id="deleteRecipeModal" tabindex="-1" aria-labelledby="deleteRecipeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteRecipeModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the recipe <strong>{{ recipe.title }}</strong>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/recipes/{{ recipe.id }}/delete" method="post">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add to Meal Plan Modal -->
+<div class="modal fade" id="addToMealPlanModal" tabindex="-1" aria-labelledby="addToMealPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addToMealPlanModalLabel">Add to Meal Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <div id="existingMealPlanOption" class="mb-3">
+                        <h6>Add to existing meal plan:</h6>
+                        <form id="addToExistingMealPlanForm" action="{{ url_for('views.add_to_meal_plan_from_recipe', recipe_id=recipe.id) }}" method="post">
+                            <div class="mb-3">
+                                <select name="meal_plan_id" class="form-select mb-2" id="existingMealPlanSelect" required>
+                                    <option value="">Select a meal plan...</option>
+                                    {% for meal_plan in existing_meal_plans %}
+                                        <option value="{{ meal_plan.id }}">{{ meal_plan.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <select name="day" class="form-select mb-2" required>
+                                    <option value="">Select day...</option>
+                                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                                        <option value="{{ day }}">{{ day }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <select name="meal_type" class="form-select mb-2" required>
+                                    <option value="">Select meal type...</option>
+                                    {% for meal_type in ['Breakfast', 'Lunch', 'Dinner', 'Snack'] %}
+                                        <option value="{{ meal_type }}">{{ meal_type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="createShoppingList" name="create_shopping_list" value="true">
+                                <label class="form-check-label" for="createShoppingList">
+                                    Add ingredients to shopping list
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success w-100">Add to Meal Plan</button>
+                        </form>
+                    </div>
+
+                    <hr class="my-3">
+                    
+                    <div id="newMealPlanOption">
+                        <h6>Create new meal plan and add recipe:</h6>
+                        <form id="createNewMealPlanForm" action="{{ url_for('views.add_to_new_meal_plan', recipe_id=recipe.id) }}" method="post">
+                            <div class="mb-3">
+                                <label for="newMealPlanName" class="form-label">Meal Plan Name</label>
+                                <input type="text" class="form-control" id="newMealPlanName" name="name" placeholder="Weekly Meals, Special Dinner, etc." required>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="startDate" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="startDate" name="start_date">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="endDate" class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="endDate" name="end_date">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <select name="day" class="form-select mb-2" required>
+                                    <option value="">Select day...</option>
+                                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                                        <option value="{{ day }}">{{ day }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <select name="meal_type" class="form-select mb-2" required>
+                                    <option value="">Select meal type...</option>
+                                    {% for meal_type in ['Breakfast', 'Lunch', 'Dinner', 'Snack'] %}
+                                        <option value="{{ meal_type }}">{{ meal_type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="createShoppingListNew" name="create_shopping_list" value="true" checked>
+                                <label class="form-check-label" for="createShoppingListNew">
+                                    Create shopping list with ingredients
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">Create Meal Plan with Recipe</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle serving size adjustment
+        const servingButtons = document.querySelectorAll('.serving-btn');
+        const originalServings = {{ recipe.servings or 0 }};
+        const servingsDisplay = document.getElementById('recipe-servings');
+        
+        // Store original ingredient amounts
+        const originalAmounts = {};
+        document.querySelectorAll('.ingredient-amount').forEach(element => {
+            originalAmounts[element.dataset.ingredientId] = parseFloat(element.dataset.amount);
+        });
+        
+        servingButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active button
+                servingButtons.forEach(btn => {
+                    btn.classList.remove('active', 'btn-secondary');
+                    btn.classList.add('btn-outline-secondary');
+                });
+                this.classList.add('active', 'btn-secondary');
+                this.classList.remove('btn-outline-secondary');
+                
+                // Get the serving size multiplier
+                const factor = parseFloat(this.dataset.factor);
+                
+                // Update displayed serving size
+                const newServings = Math.round((originalServings * factor) * 10) / 10;
+                servingsDisplay.textContent = newServings;
+                
+                // Update all ingredient amounts
+                document.querySelectorAll('.ingredient-amount').forEach(element => {
+                    const ingredientId = element.dataset.ingredientId;
+                    if (originalAmounts[ingredientId]) {
+                        const newAmount = (originalAmounts[ingredientId] * factor).toFixed(2);
+                        // Remove trailing zeros
+                        const displayAmount = parseFloat(newAmount) === parseInt(newAmount) 
+                            ? parseInt(newAmount) 
+                            : parseFloat(newAmount);
+                        element.textContent = displayAmount;
+                    }
+                });
+                
+                // Update nutrition information if available
+                document.querySelectorAll('.nutrition-value').forEach(element => {
+                    const originalValue = parseFloat(element.dataset.originalValue);
+                    if (!isNaN(originalValue)) {
+                        const newValue = Math.round(originalValue * factor);
+                        element.textContent = newValue;
+                    }
+                });
+            });
+        });
+        
+        // Pre-select the dinner meal type by default
+        const preSelectDinnerSlot = () => {
+            // Find all meal type dropdowns
+            const mealTypeSelects = document.querySelectorAll('select[name="meal_type"]');
+            mealTypeSelects.forEach(select => {
+                // Set the default value to "Dinner"
+                const dinnerOption = Array.from(select.options).find(option => option.value === 'Dinner');
+                if (dinnerOption) {
+                    select.value = 'Dinner';
+                }
+            });
+        };
+
+        // When a meal plan is selected, find the first available weekday
+        const existingMealPlanSelect = document.getElementById('existingMealPlanSelect');
+        if (existingMealPlanSelect) {
+            existingMealPlanSelect.addEventListener('change', function() {
+                if (this.value) {
+                    // Make an AJAX request to get available slots for this meal plan
+                    fetch(`/api/meal-plans/${this.value}/available-slots`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.available_slots && data.available_slots.length > 0) {
+                                // Find first available slot with no dinner
+                                const dinnerSlot = data.available_slots.find(slot => !slot.has_dinner);
+                                
+                                if (dinnerSlot) {
+                                    // Set the day to the first available slot
+                                    const daySelect = this.closest('form').querySelector('select[name="day"]');
+                                    if (daySelect) {
+                                        daySelect.value = dinnerSlot.day;
+                                    }
+                                }
+                            }
+                        })
+                        .catch(error => console.error('Error fetching available slots:', error));
+                }
+            });
+        }
+
+        // Initialize both forms - existing and new meal plan
+        const initializeForms = () => {
+            // Initially set dinner as default meal type for both forms
+            preSelectDinnerSlot();
+
+            // Set the default day to the current day or next if late in the day
+            setDefaultDay();
+
+            // Initialize the auto-check for shopping list creation in both forms
+            document.querySelectorAll('input[name="create_shopping_list"]').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        };
+
+        // Set the default day to the current day or next if late in the day
+        const setDefaultDay = () => {
+            const daySelects = document.querySelectorAll('select[name="day"]');
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            
+            // Get current day of week (0 = Sunday, 1 = Monday, etc.)
+            const now = new Date();
+            const currentHour = now.getHours();
+            let dayIndex = now.getDay();
+            
+            // Adjust for Sunday being 0 in JavaScript but last in our list
+            dayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+            
+            // If it's late in the day (after 4pm), default to tomorrow
+            if (currentHour >= 16) {
+                dayIndex = (dayIndex + 1) % 7;
+            }
+            
+            const defaultDay = days[dayIndex];
+            
+            daySelects.forEach(select => {
+                if (defaultDay) {
+                    select.value = defaultDay;
+                }
+            });
+        };
+        
+        // Initialize all forms when the modal is shown
+        const addToMealPlanModal = document.getElementById('addToMealPlanModal');
+        if (addToMealPlanModal) {
+            addToMealPlanModal.addEventListener('shown.bs.modal', function() {
+                initializeForms();
+            });
+        }
+        
+        // Also initialize on page load
+        initializeForms();
+    });
+</script>
+{% endblock %}

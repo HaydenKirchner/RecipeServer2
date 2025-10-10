@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Recipe Planner{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <a href="{{ url_for('inventory_views.inventories') }}" class="btn btn-outline-secondary me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1 class="mb-0">{{ inventory.name }}</h1>
+                </div>
+                <div>
+                    <a href="{{ url_for('inventory_views.edit_inventory', inventory_id=inventory.id) }}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-edit me-1"></i> Edit
+                    </a>
+                    <a href="{{ url_for('inventory_views.add_item', inventory_id=inventory.id) }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Item
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3 mb-md-0">
+            <form action="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id) }}" method="get" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" placeholder="Search items..." value="{{ request.args.get('search', '') }}">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex justify-content-md-end">
+                <div class="btn-group me-2">
+                    <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id, show='all') }}" class="btn btn-outline-secondary {{ 'active' if request.args.get('show', 'all') == 'all' }}">All</a>
+                    <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id, show='expiring') }}" class="btn btn-outline-secondary {{ 'active' if request.args.get('show') == 'expiring' }}">Expiring Soon</a>
+                    <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id, show='expired') }}" class="btn btn-outline-secondary {{ 'active' if request.args.get('show') == 'expired' }}">Expired</a>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-sort me-1"></i> {{ 'Sort: ' + filters.sort_by|title if filters.sort_by else 'Sort' }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                        {% set args = request.args.copy() %}
+                        {% set _ = args.pop('sort_by', None) %}
+                        <li><a class="dropdown-item {{ 'active' if filters.sort_by == 'name' }}" href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id, sort_by='name', **args) }}">Name</a></li>
+                        <li><a class="dropdown-item {{ 'active' if filters.sort_by == 'quantity' }}" href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id, sort_by='quantity', **args) }}">Quantity</a></li>
+                        <li><a class="dropdown-item {{ 'active' if filters.sort_by == 'expiration_date' }}" href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id, sort_by='expiration_date', **args) }}">Expiration Date</a></li>
+                        <li><a class="dropdown-item {{ 'active' if filters.sort_by == 'storage_location' }}" href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id, sort_by='storage_location', **args) }}">Storage Location</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            {% if items %}
+                <div class="card border-0 shadow">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Quantity</th>
+                                        <th>Expiration</th>
+                                        <th>Location</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="ingredient-icon rounded-circle bg-light p-2 me-2">
+                                                    <i class="fas {{ item.ingredient.name|lower|replace(' ', '-')|default('fa-lemon') }} text-muted"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ item.ingredient.name }}</div>
+                                                    {% if item.notes %}
+                                                    <small class="text-muted">{{ item.notes }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ format_amount(item.quantity, item.unit) }}</td>
+                                        <td>
+                                            {% if item.expiration_date %}
+                                                {% set days_until = (item.expiration_date - now).days %}
+                                                {% if days_until < 0 %}
+                                                    <span class="badge bg-danger">Expired {{ -days_until }} day{{ '' if -days_until == 1 else 's' }} ago</span>
+                                                {% elif days_until <= 3 %}
+                                                    <span class="badge bg-danger">{{ days_until }} day{{ '' if days_until == 1 else 's' }}</span>
+                                                {% elif days_until <= 7 %}
+                                                    <span class="badge bg-warning text-dark">{{ days_until }} days</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">{{ item.expiration_date|date }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not set</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.storage_location %}
+                                                <span class="badge bg-info">{{ item.storage_location }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not set</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{{ url_for('inventory_views.edit_item', item_id=item.id) }}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDeleteItem({{ item.id }}, '{{ item.ingredient.name }}')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card border-0 shadow">
+                    <div class="card-body text-center py-5">
+                        <div class="display-1 text-muted mb-3">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <h3 class="text-muted mb-3">No items found</h3>
+                        {% if request.args.get('search') or request.args.get('show') %}
+                            <p>Try changing your filters or search terms.</p>
+                            <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id) }}" class="btn btn-primary">
+                                <i class="fas fa-sync-alt me-1"></i> Reset Filters
+                            </a>
+                        {% else %}
+                            <p>Start by adding ingredients to your inventory.</p>
+                            <a href="{{ url_for('inventory_views.add_item', inventory_id=inventory.id) }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i> Add First Item
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-utensils me-2"></i> What Can I Cook?
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>Find recipes based on what you have in your inventory.</p>
+                    <div class="mb-3">
+                        <label for="matchThreshold" class="form-label">Match Threshold</label>
+                        <div class="d-flex align-items-center">
+                            <input type="range" class="form-range me-2" id="matchThreshold" min="0" max="1" step="0.1" value="0.5">
+                            <span id="thresholdValue">50%</span>
+                        </div>
+                        <div class="form-text">Minimum percentage of ingredients needed to match.</div>
+                    </div>
+                    <a href="{{ url_for('inventory_views.recipe_matches', inventory_id=inventory.id, match_threshold=0.5) }}" id="findRecipesBtn" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i> Find Matching Recipes
+                    </a>
+                </div>
+            </div>
+            
+            {% if expiring_soon_count > 0 %}
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i> Expiring Soon
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>You have <strong>{{ expiring_soon_count }}</strong> {{ 'item' if expiring_soon_count == 1 else 'items' }} expiring in the next 7 days.</p>
+                    <a href="{{ url_for('inventory_views.expiring_recipes', inventory_id=inventory.id) }}" class="btn btn-warning w-100">
+                        <i class="fas fa-utensils me-1"></i> Find Recipes for Expiring Items
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card border-0 shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i> Inventory Stats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <div class="small text-muted mb-1">Total Items</div>
+                            <h4>{{ total_items }}</h4>
+                        </div>
+                        <div>
+                            <div class="small text-muted mb-1">Storage Locations</div>
+                            <h4>{{ storage_locations|length }}</h4>
+                        </div>
+                    </div>
+                    
+                    {% if storage_locations %}
+                    <div class="mb-3">
+                        <div class="small text-muted mb-2">Items by Location</div>
+                        {% for location, count in storage_locations.items() %}
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{{ location or 'Unspecified' }}</span>
+                            <span class="badge bg-info">{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div>
+                        <div class="small text-muted mb-1">Last Updated</div>
+                        <div>{{ inventory.updated_at|datetime }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="deleteItemForm" method="post" style="display:none;"></form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const slider = document.getElementById('matchThreshold');
+    const output = document.getElementById('thresholdValue');
+    const findRecipesBtn = document.getElementById('findRecipesBtn');
+    
+    // Update the current slider value
+    slider.oninput = function() {
+        const value = Math.round(this.value * 100);
+        output.innerHTML = value + '%';
+        
+        // Update the href of the button
+        const currentHref = findRecipesBtn.getAttribute('href');
+        const newHref = currentHref.replace(/match_threshold=\d+\.?\d*/, 'match_threshold=' + this.value);
+        findRecipesBtn.setAttribute('href', newHref);
+    }
+    
+    function confirmDeleteItem(itemId, itemName) {
+        if (confirm(`Are you sure you want to remove ${itemName} from your inventory?`)) {
+            const form = document.getElementById('deleteItemForm');
+            form.action = `/inventory/items/${itemId}/delete`;
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}

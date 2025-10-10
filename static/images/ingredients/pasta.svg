@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512px" height="512px" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Pasta</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#FFFBF0" cx="256" cy="256" r="256"></circle>
+        <path d="M160,140 C268.366,140 280,140 352,140 L352,150 C352,161.046 343.046,170 332,170 L180,170 C168.954,170 160,161.046 160,150 L160,140 Z" fill="#FFE4B5"></path>
+        <path d="M180,170 L332,170 L354,360 C354,371.046 345.046,380 334,380 L178,380 C166.954,380 158,371.046 158,360 L180,170 Z" fill="#F8F0DD"></path>
+        <path d="M190,160 C190,160 175,240 230,290 C285,340 285,370 285,370" stroke="#FFD700" stroke-width="8" stroke-linecap="round" transform="translate(237.5, 265) rotate(-3) translate(-237.5, -265)"></path>
+        <path d="M220,160 C220,160 205,240 260,290 C315,340 315,370 315,370" stroke="#FFD700" stroke-width="8" stroke-linecap="round" transform="translate(267.5, 265) rotate(-3) translate(-267.5, -265)"></path>
+        <path d="M250,160 C250,160 235,240 290,290 C345,340 345,370 345,370" stroke="#FFD700" stroke-width="8" stroke-linecap="round" transform="translate(297.5, 265) rotate(-3) translate(-297.5, -265)"></path>
+        <path d="M285,160 C285,160 270,240 215,290 C160,340 160,370 160,370" stroke="#FFD700" stroke-width="8" stroke-linecap="round" transform="translate(222.5, 265) scale(-1, 1) rotate(-3) translate(-222.5, -265)"></path>
+        <path d="M315,160 C315,160 300,240 245,290 C190,340 190,370 190,370" stroke="#FFD700" stroke-width="8" stroke-linecap="round" transform="translate(252.5, 265) scale(-1, 1) rotate(-3) translate(-252.5, -265)"></path>
+    </g>
+</svg>

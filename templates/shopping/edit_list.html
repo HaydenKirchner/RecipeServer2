@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Shopping List{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('shopping_views.shopping_list_detail', shopping_list_id=shopping_list.id) }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <h1 class="mb-0">Edit Shopping List</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('shopping_views.edit_shopping_list', shopping_list_id=shopping_list.id) }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">List Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ shopping_list.name }}" required>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <form action="{{ url_for('shopping_views.delete_shopping_list', shopping_list_id=shopping_list.id) }}" method="POST" id="deleteListForm">
+                    <button type="button" class="btn btn-outline-danger" onclick="confirmDelete('Are you sure you want to delete this shopping list?', 'deleteListForm')">
+                        <i class="bi bi-trash"></i> Delete Shopping List
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(message, formId) {
+    if (confirm(message)) {
+        document.getElementById(formId).submit();
+    }
+}
+</script>
+{% endblock %}

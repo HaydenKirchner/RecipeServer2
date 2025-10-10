@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if view_mode == 'list' %}
+        Meal Plans - Recipe Planner
+    {% elif view_mode == 'detail' %}
+        {{ meal_plan.name }} - Recipe Planner
+    {% elif view_mode == 'add' %}
+        Create Meal Plan - Recipe Planner
+    {% elif view_mode == 'edit' %}
+        Edit {{ meal_plan.name }} - Recipe Planner
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/meal-plans">Meal Plans</a></li>
+            {% if view_mode == 'detail' or view_mode == 'edit' %}
+                <li class="breadcrumb-item active" aria-current="page">{{ meal_plan.name }}</li>
+            {% elif view_mode == 'add' %}
+                <li class="breadcrumb-item active" aria-current="page">Create New</li>
+            {% endif %}
+        </ol>
+    </nav>
+</div>
+
+{% if view_mode == 'list' %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Meal Plans</h1>
+        <a href="/meal-plans/add" class="btn btn-success">
+            <i class="fas fa-plus me-1"></i> Create Meal Plan
+        </a>
+    </div>
+
+    <div id="meal-plan-container">
+        {% if meal_plans %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for meal_plan in meal_plans %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ meal_plan.name }}</h5>
+                                {% if meal_plan.start_date or meal_plan.end_date %}
+                                    <p class="card-text text-muted">
+                                        {% if meal_plan.start_date and meal_plan.end_date %}
+                                            {{ meal_plan.start_date|string }} to {{ meal_plan.end_date|string }}
+                                        {% elif meal_plan.start_date %}
+                                            From {{ meal_plan.start_date|string }}
+                                        {% elif meal_plan.end_date %}
+                                            Until {{ meal_plan.end_date|string }}
+                                        {% endif %}
+                                    </p>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0">
+                                <div class="d-flex justify-content-between">
+                                    <a href="/meal-plans/{{ meal_plan.id }}" class="btn btn-primary">View</a>
+                                    <a href="/meal-plans/{{ meal_plan.id }}/edit" class="btn btn-outline-secondary">Edit</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <!-- Create New Card -->
+                <div class="col">
+                    <div class="card h-100 border-dashed shadow-sm">
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                            <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Create New Meal Plan</h5>
+                            <p class="card-text">Plan your meals for the week or a special occasion</p>
+                            <a href="/meal-plans/add" class="btn btn-primary mt-3">Create Plan</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <h4 class="alert-heading">No Meal Plans Found</h4>
+                <p>You haven't created any meal plans yet.</p>
+                <hr>
+                <p class="mb-0"><a href="/meal-plans/add" class="btn btn-primary">Create a Meal Plan</a></p>
+            </div>
+        {% endif %}
+    </div>
+
+{% elif view_mode == 'detail' %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ meal_plan.name }}</h1>
+        <div>
+            <a href="{{ url_for('shopping_views.generate_shopping_list', meal_plan_id=meal_plan.id) }}" class="btn btn-success me-2">
+                <i class="bi bi-cart me-1"></i> Generate Shopping List
+            </a>
+            <a href="/meal-plans/{{ meal_plan.id }}/edit" class="btn btn-outline-primary me-2">
+                <i class="fas fa-edit me-1"></i> Edit
+            </a>
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMealPlanModal">
+                <i class="fas fa-trash-alt me-1"></i> Delete
+            </button>
+        </div>
+    </div>
+
+    <div class="meal-plan-dates mb-4">
+        <p class="text-muted">
+            {% if meal_plan.start_date %}
+                <span class="me-3">Start: {{ meal_plan.start_date|string }}</span>
+            {% endif %}
+            {% if meal_plan.end_date %}
+                <span>End: {{ meal_plan.end_date|string }}</span>
+            {% endif %}
+        </p>
+        
+        {% if meal_plan.shopping_list %}
+        <div class="alert alert-success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-cart-check me-2"></i> This meal plan has a shopping list: 
+                    <strong>{{ meal_plan.shopping_list.name }}</strong>
+                </div>
+                <a href="{{ url_for('shopping_views.shopping_list_detail', shopping_list_id=meal_plan.shopping_list.id) }}" class="btn btn-sm btn-outline-success">
+                    View Shopping List
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="meal-plan-container" data-meal-plan-id="{{ meal_plan.id }}">
+        <!-- Meal plan days will be rendered by MealPlannerView -->
+        {% for day, meals in meal_plan.days.items() %}
+            <div class="meal-plan-day card mb-4">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">{{ day }}</h3>
+                </div>
+                <div class="card-body">
+                    {% for meal_type, recipes in meals.items() %}
+                        <div class="meal-slot mb-3">
+                            <h4 class="h6 mb-2">{{ meal_type }}</h4>
+                            <div class="meal-recipes">
+                                {% if recipes %}
+                                    {% for recipe in recipes %}
+                                        <div class="meal-recipe card mb-2">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex align-items-center">
+                                                    <a href="/recipes/{{ recipe.id }}" class="text-decoration-none text-body">
+                                                        <div class="d-flex align-items-center">
+                                                            {% if recipe.image_url %}
+                                                                <img src="{{ recipe.image_url }}" class="me-2" alt="{{ recipe.title }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                                            {% endif %}
+                                                            <div>
+                                                                <h5 class="card-title h6 mb-0">{{ recipe.title }}</h5>
+                                                                {% if recipe.nutrition and recipe.nutrition.calories %}
+                                                                    <small class="text-muted">{{ recipe.nutrition.calories|round|int }} calories</small>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                    <form action="/meal-plans/{{ meal_plan.id }}/remove-recipe" method="post" class="ms-auto">
+                                                        <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+                                                        <input type="hidden" name="day" value="{{ day }}">
+                                                        <input type="hidden" name="meal_type" value="{{ meal_type }}">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-times-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="empty-meal-slot text-muted small">
+                                        No recipes planned for this meal
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <h4 class="alert-heading">Empty Meal Plan</h4>
+                <p>This meal plan doesn't have any recipes yet.</p>
+                <hr>
+                <p class="mb-0"><a href="/meal-plans/{{ meal_plan.id }}/edit" class="btn btn-primary">Edit Meal Plan</a></p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteMealPlanModal" tabindex="-1" aria-labelledby="deleteMealPlanModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteMealPlanModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the meal plan <strong>{{ meal_plan.name }}</strong>?</p>
+                    <p class="text-danger">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="/meal-plans/{{ meal_plan.id }}/delete" method="post">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif view_mode == 'add' %}
+    <h1 class="mb-4">Create New Meal Plan</h1>
+    
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form id="add-meal-plan-form" action="/meal-plans/add" method="post">
+                        <div class="mb-3">
+                            <label for="meal-plan-name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="meal-plan-name" name="name" required
+                                   placeholder="Weekly Meal Plan, Vacation Menu, etc.">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="start-date" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="start-date" name="start_date">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="end-date" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="end-date" name="end_date">
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <a href="/meal-plans" class="btn btn-outline-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Meal Plan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif view_mode == 'edit' %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Edit {{ meal_plan.name }}</h1>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMealPlanModal">
+            <i class="fas fa-trash-alt me-1"></i> Delete
+        </button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Meal Plan Details</h5>
+                    <form action="/meal-plans/{{ meal_plan.id }}/edit" method="post">
+                        <div class="mb-3">
+                            <label for="meal-plan-name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="meal-plan-name" name="name" required
+                                   value="{{ meal_plan.name }}">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="start-date" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="start-date" name="start_date"
+                                       value="{{ meal_plan.start_date|string if meal_plan.start_date else '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="end-date" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="end-date" name="end_date"
+                                       value="{{ meal_plan.end_date|string if meal_plan.end_date else '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <a href="/meal-plans/{{ meal_plan.id }}" class="btn btn-outline-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="meal-plan-container" data-meal-plan-id="{{ meal_plan.id }}" data-mode="edit">
+                <!-- Meal plan days will be rendered by MealPlannerView -->
+                {% for day, meals in meal_plan.days.items() %}
+                    <div class="meal-plan-day card mb-4">
+                        <div class="card-header">
+                            <h3 class="h5 mb-0">{{ day }}</h3>
+                        </div>
+                        <div class="card-body">
+                            {% for meal_type, recipes in meals.items() %}
+                                <div class="meal-slot mb-3">
+                                    <h4 class="h6 mb-2">{{ meal_type }}</h4>
+                                    <div class="meal-recipes">
+                                        {% if recipes %}
+                                            {% for recipe in recipes %}
+                                                <div class="meal-recipe card mb-2">
+                                                    <div class="card-body p-2">
+                                                        <div class="d-flex align-items-center">
+                                                            <a href="/recipes/{{ recipe.id }}" class="text-decoration-none text-body">
+                                                                <div class="d-flex align-items-center">
+                                                                    {% if recipe.image_url %}
+                                                                        <img src="{{ recipe.image_url }}" class="me-2" alt="{{ recipe.title }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
+                                                                    {% endif %}
+                                                                    <div>
+                                                                        <h5 class="card-title h6 mb-0">{{ recipe.title }}</h5>
+                                                                        {% if recipe.nutrition and recipe.nutrition.calories %}
+                                                                            <small class="text-muted">{{ recipe.nutrition.calories|round|int }} calories</small>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                            </a>
+                                                            <div class="ms-auto">
+                                                                <button type="button" class="btn btn-sm btn-outline-danger remove-recipe-btn"
+                                                                        data-meal-plan-id="{{ meal_plan.id }}"
+                                                                        data-recipe-id="{{ recipe.id }}"
+                                                                        data-day="{{ day }}"
+                                                                        data-meal-type="{{ meal_type }}">
+                                                                    <i class="fas fa-times-circle"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        
+                                        <!-- Add Recipe Form -->
+                                        <form class="add-recipe-form" data-meal-plan-id="{{ meal_plan.id }}">
+                                            <input type="hidden" name="day" value="{{ day }}">
+                                            <input type="hidden" name="meal_type" value="{{ meal_type }}">
+                                            <div class="input-group input-group-sm">
+                                                <select name="recipe_id" class="form-select" required>
+                                                    <option value="">Add a recipe...</option>
+                                                    {% for recipe in recipes %}
+                                                        <option value="{{ recipe.id }}">{{ recipe.title }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                <button type="submit" class="btn btn-outline-primary">Add</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Empty Meal Plan Template -->
+                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                        <div class="meal-plan-day card mb-4">
+                            <div class="card-header">
+                                <h3 class="h5 mb-0">{{ day }}</h3>
+                            </div>
+                            <div class="card-body">
+                                {% for meal_type in ['Breakfast', 'Lunch', 'Dinner', 'Snack'] %}
+                                    <div class="meal-slot mb-3">
+                                        <h4 class="h6 mb-2">{{ meal_type }}</h4>
+                                        <div class="meal-recipes">
+                                            <!-- Add Recipe Form -->
+                                            <form class="add-recipe-form" data-meal-plan-id="{{ meal_plan.id }}">
+                                                <input type="hidden" name="day" value="{{ day }}">
+                                                <input type="hidden" name="meal_type" value="{{ meal_type }}">
+                                                <div class="input-group input-group-sm">
+                                                    <select name="recipe_id" class="form-select" required>
+                                                        <option value="">Add a recipe...</option>
+                                                        {% for recipe in recipes %}
+                                                            <option value="{{ recipe.id }}">{{ recipe.title }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    <button type="submit" class="btn btn-outline-primary">Add</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Available Recipes</h5>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="recipe-search" 
+                               placeholder="Search recipes..." autocomplete="off">
+                    </div>
+                    <div class="recipe-list" style="max-height: 500px; overflow-y: auto;">
+                        {% if recipes %}
+                            <div class="list-group">
+                                {% for recipe in recipes %}
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">{{ recipe.title }}</h6>
+                                                {% if recipe.nutrition and recipe.nutrition.calories %}
+                                                    <small class="text-muted">{{ recipe.nutrition.calories|round|int }} calories</small>
+                                                {% endif %}
+                                            </div>
+                                            <a href="/recipes/{{ recipe.id }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No recipes available. <a href="/recipes/add">Add some recipes</a> first.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteMealPlanModal" tabindex="-1" aria-labelledby="deleteMealPlanModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteMealPlanModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the meal plan <strong>{{ meal_plan.name }}</strong>?</p>
+                    <p class="text-danger">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="/meal-plans/{{ meal_plan.id }}/delete" method="post">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/views/meal-planner.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize meal planner view based on the current mode
+        const mealPlannerView = new MealPlannerView({
+            containerId: 'meal-plan-container',
+            {% if view_mode == 'detail' or view_mode == 'edit' %}
+            mealPlanId: {{ meal_plan.id }},
+            {% endif %}
+            {% if view_mode == 'edit' %}
+            editable: true
+            {% endif %}
+        });
+        
+        // Add recipe search functionality if in edit mode
+        {% if view_mode == 'edit' %}
+        const recipeSearch = document.getElementById('recipe-search');
+        if (recipeSearch) {
+            recipeSearch.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const recipeItems = document.querySelectorAll('.recipe-list .list-group-item');
+                
+                recipeItems.forEach(item => {
+                    const title = item.querySelector('h6').textContent.toLowerCase();
+                    if (title.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+        {% endif %}
+    });
+</script>
+{% endblock %}

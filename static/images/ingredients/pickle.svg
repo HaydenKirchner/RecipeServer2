@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512px" height="512px" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Pickle</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#F8F8F8" cx="256" cy="256" r="256"></circle>
+        <path d="M190,136 C241.856,136 270,167.340 270,256 C270,344.660 241.856,376 190,376 C138.144,376 110,344.660 110,256 C110,167.340 138.144,136 190,136 Z" fill="#7CFC00" transform="translate(190, 256) rotate(-10) translate(-190, -256)"></path>
+        <path d="M324,136 C375.856,136 404,167.340 404,256 C404,344.660 375.856,376 324,376 C272.144,376 244,344.660 244,256 C244,167.340 272.144,136 324,136 Z" fill="#90EE90" transform="translate(324, 256) rotate(10) translate(-324, -256)"></path>
+        <path d="M190,166 C227.556,166 250,203.072 250,256 C250,308.928 227.556,346 190,346 C152.444,346 130,308.928 130,256 C130,203.072 152.444,166 190,166 Z" fill="#9ACD32" transform="translate(190, 256) rotate(-5) translate(-190, -256)"></path>
+        <path d="M324,166 C361.556,166 384,203.072 384,256 C384,308.928 361.556,346 324,346 C286.444,346 264,308.928 264,256 C264,203.072 286.444,166 324,166 Z" fill="#6B8E23" transform="translate(324, 256) rotate(5) translate(-324, -256)"></path>
+        <ellipse fill="#228B22" opacity="0.5" cx="190" cy="206" rx="10" ry="6"></ellipse>
+        <ellipse fill="#228B22" opacity="0.5" cx="190" cy="236" rx="10" ry="6"></ellipse>
+        <ellipse fill="#228B22" opacity="0.5" cx="190" cy="266" rx="10" ry="6"></ellipse>
+        <ellipse fill="#228B22" opacity="0.5" cx="190" cy="296" rx="10" ry="6"></ellipse>
+        <ellipse fill="#228B22" opacity="0.5" cx="190" cy="326" rx="10" ry="6"></ellipse>
+        <ellipse fill="#006400" opacity="0.5" cx="324" cy="186" rx="10" ry="6"></ellipse>
+        <ellipse fill="#006400" opacity="0.5" cx="324" cy="216" rx="10" ry="6"></ellipse>
+        <ellipse fill="#006400" opacity="0.5" cx="324" cy="246" rx="10" ry="6"></ellipse>
+        <ellipse fill="#006400" opacity="0.5" cx="324" cy="276" rx="10" ry="6"></ellipse>
+        <ellipse fill="#006400" opacity="0.5" cx="324" cy="306" rx="10" ry="6"></ellipse>
+        <ellipse fill="#006400" opacity="0.5" cx="324" cy="336" rx="10" ry="6"></ellipse>
+    </g>
+</svg>

@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory Management - Recipe Planner{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <h1>
+                    <i class="fas fa-boxes me-2"></i> Inventory Management
+                </h1>
+                <a href="{{ url_for('inventory_views.add_inventory') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> New Inventory
+                </a>
+            </div>
+            <p class="lead text-muted">Track ingredients, manage expiration dates, and discover recipes based on what you have.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        {% if inventories %}
+            {% for inventory in inventories %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-0 shadow">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0">{{ inventory.name }}</h5>
+                                <span class="badge bg-primary rounded-pill">{{ inventory.items|length }} items</span>
+                            </div>
+                            
+                            {% set expiring_soon_count = inventory.items|selectattr('expiration_date')|selectattr('expiration_date', 'le', (now + days(7)))|selectattr('expiration_date', 'ge', now)|list|length %}
+                            {% set expired_count = inventory.items|selectattr('expiration_date')|selectattr('expiration_date', 'lt', now)|list|length %}
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="small text-muted">Items</span>
+                                    <span>{{ inventory.items|length }}</span>
+                                </div>
+                                {% if expiring_soon_count > 0 %}
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="small text-muted">Expiring Soon</span>
+                                        <span class="text-warning">{{ expiring_soon_count }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if expired_count > 0 %}
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="small text-muted">Expired</span>
+                                        <span class="text-danger">{{ expired_count }}</span>
+                                    </div>
+                                {% endif %}
+                                
+                                {% set storage_locations = inventory.items|map(attribute='storage_location')|select|unique|list %}
+                                {% if storage_locations %}
+                                    <div class="d-flex justify-content-between">
+                                        <span class="small text-muted">Storage Locations</span>
+                                        <span>{{ storage_locations|length }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {% if inventory.items %}
+                                    <div class="mb-2 small text-muted">Top ingredients:</div>
+                                    <div>
+                                        {% for item in inventory.items[:5] %}
+                                            <span class="badge bg-light text-dark border mb-1">{{ item.ingredient.name }}</span>
+                                        {% endfor %}
+                                        {% if inventory.items|length > 5 %}
+                                            <span class="badge bg-light text-dark border mb-1">+{{ inventory.items|length - 5 }} more</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-light text-center small py-2">
+                                        <i class="fas fa-info-circle me-1"></i> No items in this inventory yet
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if expiring_soon_count > 0 %}
+                                <div class="alert alert-warning py-2 small">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> 
+                                    {{ expiring_soon_count }} {{ 'item is' if expiring_soon_count == 1 else 'items are' }} expiring soon
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id) }}" class="btn btn-primary flex-grow-1">
+                                    <i class="fas fa-eye me-1"></i> View
+                                </a>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdown{{ inventory.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown{{ inventory.id }}">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('inventory_views.add_item', inventory_id=inventory.id) }}">
+                                                <i class="fas fa-plus text-primary me-2"></i> Add Item
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('inventory_views.recipe_matches', inventory_id=inventory.id) }}">
+                                                <i class="fas fa-search text-success me-2"></i> Find Recipes
+                                            </a>
+                                        </li>
+                                        {% if expiring_soon_count > 0 %}
+                                            <li>
+                                                <a class="dropdown-item" href="{{ url_for('inventory_views.expiring_recipes', inventory_id=inventory.id) }}">
+                                                    <i class="fas fa-clock text-warning me-2"></i> Expiring Recipes
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('inventory_views.edit_inventory', inventory_id=inventory.id) }}">
+                                                <i class="fas fa-edit text-info me-2"></i> Edit
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-body text-center py-5">
+                        <div class="display-1 text-muted mb-3">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <h3 class="text-muted mb-3">No Inventories Yet</h3>
+                        <p>Start tracking your ingredients by creating your first inventory.</p>
+                        <a href="{{ url_for('inventory_views.add_inventory') }}" class="btn btn-primary mt-3">
+                            <i class="fas fa-plus me-1"></i> Create First Inventory
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if inventories %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i> Smart Inventory Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle bg-primary text-white p-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5>Track Expiration Dates</h5>
+                                    <p class="text-muted small">Add expiration dates to your inventory items to reduce food waste and get alerts when items are about to expire.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle bg-success text-white p-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-utensils"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5>Find Matching Recipes</h5>
+                                    <p class="text-muted small">Discover recipes you can make with ingredients you already have. Adjust the match threshold to find more options.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle bg-warning text-dark p-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-tags"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5>Organize By Location</h5>
+                                    <p class="text-muted small">Group ingredients by storage location to easily find what you need when cooking or making shopping lists.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

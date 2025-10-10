@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Recipe Planner{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=item.inventory_id) }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="mb-0">
+                    <i class="fas fa-edit me-2"></i> Edit {{ item.ingredient.name }}
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('inventory_views.edit_item', item_id=item.id) }}">
+                        <input type="hidden" name="ingredient_id" value="{{ item.ingredient_id }}">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" min="0" step="0.01" value="{{ item.quantity or 1 }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="unit" class="form-label">Unit</label>
+                                <select class="form-select" id="unit" name="unit">
+                                    <option value="">Select unit</option>
+                                    <option value="g" {% if item.unit == 'g' %}selected{% endif %}>Gram (g)</option>
+                                    <option value="kg" {% if item.unit == 'kg' %}selected{% endif %}>Kilogram (kg)</option>
+                                    <option value="oz" {% if item.unit == 'oz' %}selected{% endif %}>Ounce (oz)</option>
+                                    <option value="lb" {% if item.unit == 'lb' %}selected{% endif %}>Pound (lb)</option>
+                                    <option value="ml" {% if item.unit == 'ml' %}selected{% endif %}>Milliliter (ml)</option>
+                                    <option value="l" {% if item.unit == 'l' %}selected{% endif %}>Liter (l)</option>
+                                    <option value="cup" {% if item.unit == 'cup' %}selected{% endif %}>Cup</option>
+                                    <option value="tbsp" {% if item.unit == 'tbsp' %}selected{% endif %}>Tablespoon (tbsp)</option>
+                                    <option value="tsp" {% if item.unit == 'tsp' %}selected{% endif %}>Teaspoon (tsp)</option>
+                                    <option value="piece" {% if item.unit == 'piece' %}selected{% endif %}>Piece</option>
+                                    <option value="pack" {% if item.unit == 'pack' %}selected{% endif %}>Package</option>
+                                    <option value="can" {% if item.unit == 'can' %}selected{% endif %}>Can</option>
+                                    <option value="bottle" {% if item.unit == 'bottle' %}selected{% endif %}>Bottle</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="purchase_date" class="form-label">Purchase Date</label>
+                                <input type="text" class="form-control datepicker" id="purchase_date" name="purchase_date" placeholder="Select date" value="{{ item.purchase_date|date if item.purchase_date else '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="expiration_date" class="form-label">Expiration Date</label>
+                                <input type="text" class="form-control datepicker" id="expiration_date" name="expiration_date" placeholder="Select date" value="{{ item.expiration_date|date if item.expiration_date else '' }}">
+                                
+                                {% if item.expiration_date %}
+                                    {% set days_until = (item.expiration_date - now).days %}
+                                    {% if days_until < 0 %}
+                                        <div class="form-text text-danger">
+                                            Expired {{ -days_until }} day{{ '' if -days_until == 1 else 's' }} ago
+                                        </div>
+                                    {% elif days_until <= 7 %}
+                                        <div class="form-text text-warning">
+                                            Expires in {{ days_until }} day{{ '' if days_until == 1 else 's' }}
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="storage_location" class="form-label">Storage Location</label>
+                            <select class="form-select" id="storage_location" name="storage_location">
+                                <option value="">Select location</option>
+                                <option value="Refrigerator" {% if item.storage_location == 'Refrigerator' %}selected{% endif %}>Refrigerator</option>
+                                <option value="Freezer" {% if item.storage_location == 'Freezer' %}selected{% endif %}>Freezer</option>
+                                <option value="Pantry" {% if item.storage_location == 'Pantry' %}selected{% endif %}>Pantry</option>
+                                <option value="Spice Rack" {% if item.storage_location == 'Spice Rack' %}selected{% endif %}>Spice Rack</option>
+                                <option value="Cabinet" {% if item.storage_location == 'Cabinet' %}selected{% endif %}>Cabinet</option>
+                                <option value="Counter" {% if item.storage_location == 'Counter' %}selected{% endif %}>Counter</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Brand, special considerations, etc.">{{ item.notes or '' }}</textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=item.inventory_id) }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow mt-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Danger Zone
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Remove this item from your inventory. This action cannot be undone.
+                    </p>
+                    <form id="delete-form" action="{{ url_for('inventory_views.delete_item', item_id=item.id) }}" method="post">
+                        <button type="button" class="btn btn-outline-danger" onclick="confirmDelete()">
+                            <i class="fas fa-trash-alt me-1"></i> Remove Item
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i> Ingredient Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="ingredient-icon rounded-circle bg-light p-3 me-3 fs-4">
+                            <i class="fas {{ item.ingredient.name|lower|replace(' ', '-')|default('fa-lemon') }} text-muted"></i>
+                        </div>
+                        <h5>{{ item.ingredient.name }}</h5>
+                    </div>
+                    
+                    {% if item.ingredient.recipes|length > 0 %}
+                    <div class="mb-3">
+                        <div class="small text-muted mb-2">Used in {{ item.ingredient.recipes|length }} recipes:</div>
+                        <div class="list-group list-group-flush">
+                            {% for recipe in item.ingredient.recipes[:3] %}
+                            <a href="{{ url_for('views.recipe_detail', recipe_id=recipe.id) }}" class="list-group-item list-group-item-action px-0 border-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ recipe.title }}</span>
+                                    <span class="badge bg-primary rounded-pill">{{ recipe.prep_time + recipe.cook_time }} min</span>
+                                </div>
+                            </a>
+                            {% endfor %}
+                            
+                            {% if item.ingredient.recipes|length > 3 %}
+                            <div class="text-end mt-2">
+                                <a href="{{ url_for('views.recipes', ingredient=item.ingredient.name) }}" class="btn btn-sm btn-outline-primary">
+                                    View all recipes
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if item.ingredient.nutrition %}
+                    <div>
+                        <div class="small text-muted mb-2">Nutritional Info (per 100g):</div>
+                        <div class="row g-2">
+                            {% if item.ingredient.nutrition.calories %}
+                            <div class="col-6">
+                                <div class="border rounded p-2 text-center">
+                                    <div class="small text-muted">Calories</div>
+                                    <div class="fw-bold">{{ item.ingredient.nutrition.calories }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if item.ingredient.nutrition.protein %}
+                            <div class="col-6">
+                                <div class="border rounded p-2 text-center">
+                                    <div class="small text-muted">Protein</div>
+                                    <div class="fw-bold">{{ item.ingredient.nutrition.protein }}g</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if item.ingredient.nutrition.carbs %}
+                            <div class="col-6">
+                                <div class="border rounded p-2 text-center">
+                                    <div class="small text-muted">Carbs</div>
+                                    <div class="fw-bold">{{ item.ingredient.nutrition.carbs }}g</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if item.ingredient.nutrition.fat %}
+                            <div class="col-6">
+                                <div class="border rounded p-2 text-center">
+                                    <div class="small text-muted">Fat</div>
+                                    <div class="fw-bold">{{ item.ingredient.nutrition.fat }}g</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i> Inventory History
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="timeline">
+                        <li>
+                            <div class="timeline-badge bg-success">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div class="timeline-panel">
+                                <div class="timeline-heading">
+                                    <h6 class="timeline-title">Added to Inventory</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i> {{ item.created_at|datetime }}
+                                    </small>
+                                </div>
+                                <div class="timeline-body">
+                                    <p class="small">
+                                        Initial amount: {{ format_amount(item.quantity, item.unit) }}
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+                        
+                        {% if item.created_at != item.updated_at %}
+                        <li>
+                            <div class="timeline-badge bg-info">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="timeline-panel">
+                                <div class="timeline-heading">
+                                    <h6 class="timeline-title">Last Updated</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i> {{ item.updated_at|datetime }}
+                                    </small>
+                                </div>
+                            </div>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize date pickers
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr('.datepicker', {
+            dateFormat: 'Y-m-d',
+            allowInput: true
+        });
+    });
+    
+    function confirmDelete() {
+        if (confirm('Are you sure you want to remove {{ item.ingredient.name }} from your inventory?')) {
+            document.getElementById('delete-form').submit();
+        }
+    }
+</script>
+
+<style>
+    .timeline {
+        position: relative;
+        padding: 0;
+        list-style: none;
+    }
+    
+    .timeline:before {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 20px;
+        width: 2px;
+        content: '';
+        background-color: #e9ecef;
+    }
+    
+    .timeline > li {
+        position: relative;
+        margin-bottom: 20px;
+        margin-left: 40px;
+    }
+    
+    .timeline > li:after {
+        clear: both;
+        display: table;
+        content: ' ';
+    }
+    
+    .timeline > li > .timeline-panel {
+        float: left;
+        width: calc(100% - 25px);
+        padding: 0 0 0 15px;
+    }
+    
+    .timeline > li > .timeline-badge {
+        position: absolute;
+        top: 0;
+        left: -30px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        text-align: center;
+        font-size: 0.8em;
+        line-height: 20px;
+        color: white;
+    }
+    
+    .timeline-heading {
+        margin-bottom: 5px;
+    }
+    
+    .timeline-title {
+        margin-top: 0;
+        color: inherit;
+    }
+</style>
+{% endblock %}

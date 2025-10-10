@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Shopping List{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('views.meal_plan_detail', meal_plan_id=meal_plan.id) }}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> Back to Meal Plan
+                </a>
+                <h1 class="mb-0">Generate Shopping List</h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Generate Shopping List from {{ meal_plan.name }}</h5>
+                    <p class="card-text">
+                        This will create a new shopping list with all ingredients from the recipes in this meal plan.
+                        Similar ingredients will be combined automatically.
+                    </p>
+                    
+                    <form method="POST" action="{{ url_for('shopping_views.generate_shopping_list', meal_plan_id=meal_plan.id) }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Shopping List Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="Shopping list for {{ meal_plan.name }}" required>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-list-check"></i> Generate Shopping List
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 col-lg-6">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5>About Generated Shopping Lists</h5>
+                    <p>
+                        A generated shopping list will include all ingredients from the recipes in your meal plan.
+                    </p>
+                    <p>
+                        <strong>Features:</strong>
+                    </p>
+                    <ul>
+                        <li>Ingredients from multiple recipes are combined</li>
+                        <li>Quantities are summed when possible</li>
+                        <li>You can edit the list after generation</li>
+                    </ul>
+                    <p>
+                        After generation, you can find matching Walmart products and add them to your cart.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Recipes in This Meal Plan</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% if meal_plan.recipes %}
+                            {% for recipe in meal_plan.recipes %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ recipe.title }}
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ recipe.ingredients|length }} ingredients
+                                </span>
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item text-muted">
+                                No recipes in this meal plan.
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

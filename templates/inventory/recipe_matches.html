@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Recipe Planner{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id) }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="mb-0">
+                    <i class="fas fa-search me-2"></i> Recipe Matches
+                </h1>
+            </div>
+            <p class="text-muted mt-2">Recipes you can make with ingredients from <strong>{{ inventory.name }}</strong></p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3 mb-md-0">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Match Threshold</h5>
+                </div>
+                <div class="card-body">
+                    <form id="thresholdForm" action="{{ url_for('inventory_views.recipe_matches', inventory_id=inventory.id) }}" method="get">
+                        <div class="mb-3">
+                            <label for="matchThreshold" class="form-label">Minimum percentage of ingredients needed ({{ (match_threshold * 100)|int }}%)</label>
+                            <div class="d-flex align-items-center">
+                                <input type="range" class="form-range me-2" id="matchThreshold" name="match_threshold" min="0" max="1" step="0.1" value="{{ match_threshold }}">
+                                <span id="thresholdValue">{{ (match_threshold * 100)|int }}%</span>
+                            </div>
+                            <div class="form-text">Adjust to find more recipes (lower) or better matches (higher)</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-1"></i> Apply
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Inventory Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 border-end">
+                            <div class="text-center">
+                                <div class="small text-muted">Items in Inventory</div>
+                                <h3>{{ inventory.items|length }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="small text-muted">Recipes Found</div>
+                                <h3>{{ recipes|length }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% if recipes %}
+            {% for recipe_match in recipes %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-0 shadow">
+                        {% if recipe_match.recipe.image_url %}
+                            <img src="{{ recipe_match.recipe.image_url }}" class="card-img-top" alt="{{ recipe_match.recipe.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-utensils fa-4x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="badge bg-success">Match: {{ (recipe_match.match_percent * 100)|int }}%</span>
+                                {% if recipe_match.recipe.prep_time and recipe_match.recipe.cook_time %}
+                                    <span class="badge bg-info">{{ recipe_match.recipe.prep_time + recipe_match.recipe.cook_time }} min</span>
+                                {% endif %}
+                            </div>
+                            
+                            <h5 class="card-title">{{ recipe_match.recipe.title }}</h5>
+                            
+                            {% if recipe_match.recipe.description %}
+                                <p class="card-text small">{{ recipe_match.recipe.description|truncate(100) }}</p>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <div class="small text-muted mb-1">Ingredient Match</div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ (recipe_match.match_percent * 100)|int }}%;">
+                                        {{ (recipe_match.match_percent * 100)|int }}%
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between small mt-1">
+                                    <span>{{ recipe_match.matching_ingredients }} / {{ recipe_match.total_ingredients }}</span>
+                                    <span>{{ recipe_match.total_ingredients - recipe_match.matching_ingredients }} missing</span>
+                                </div>
+                                
+                                {% if recipe_match.matched_ingredients %}
+                                <div class="mt-2">
+                                    <div class="small fw-bold text-success mb-1">Matched Ingredients:</div>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for ingredient in recipe_match.matched_ingredients %}
+                                            <span class="badge bg-light text-success border border-success">{{ ingredient.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                {% if recipe_match.missing_ingredients %}
+                                <div class="mt-2">
+                                    <div class="small fw-bold text-danger mb-1">Missing Ingredients:</div>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for ingredient in recipe_match.missing_ingredients %}
+                                            <span class="badge bg-light text-danger border border-danger">{{ ingredient.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <a href="{{ url_for('views.recipe_detail', recipe_id=recipe_match.recipe.id) }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-eye me-1"></i> View Recipe
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-body text-center py-5">
+                        <div class="display-1 text-muted mb-3">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3 class="text-muted mb-3">No recipe matches found</h3>
+                        <p>Try adjusting the match threshold or add more ingredients to your inventory.</p>
+                        <div class="mt-4">
+                            <a href="{{ url_for('inventory_views.recipe_matches', inventory_id=inventory.id, match_threshold=0.3) }}" class="btn btn-primary me-2">
+                                <i class="fas fa-sliders-h me-1"></i> Lower Match Threshold (30%)
+                            </a>
+                            <a href="{{ url_for('inventory_views.add_item', inventory_id=inventory.id) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-1"></i> Add More Ingredients
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const slider = document.getElementById('matchThreshold');
+        const output = document.getElementById('thresholdValue');
+        
+        // Update the threshold value display when slider changes
+        slider.oninput = function() {
+            const value = Math.round(this.value * 100);
+            output.innerHTML = value + '%';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Recipe Planner{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id) }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i> Add Item to {{ inventory.name }}
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow">
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('inventory_views.add_item', inventory_id=inventory.id) }}">
+                        <div class="mb-3">
+                            <label for="ingredient_search" class="form-label">Ingredient</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="ingredient_search" placeholder="Search ingredients..." autocomplete="off">
+                                <input type="hidden" id="ingredient_id" name="ingredient_id" required>
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#ingredientModal">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                            <div id="ingredient_results" class="list-group position-absolute w-100 z-3" style="max-height: 200px; overflow-y: auto; display: none;"></div>
+                            <div class="form-text">Search for an ingredient or select from the list.</div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" min="0" step="0.01" value="1">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="unit" class="form-label">Unit</label>
+                                <select class="form-select" id="unit" name="unit">
+                                    <option value="">Select unit</option>
+                                    <option value="g">Gram (g)</option>
+                                    <option value="kg">Kilogram (kg)</option>
+                                    <option value="oz">Ounce (oz)</option>
+                                    <option value="lb">Pound (lb)</option>
+                                    <option value="ml">Milliliter (ml)</option>
+                                    <option value="l">Liter (l)</option>
+                                    <option value="cup">Cup</option>
+                                    <option value="tbsp">Tablespoon (tbsp)</option>
+                                    <option value="tsp">Teaspoon (tsp)</option>
+                                    <option value="piece">Piece</option>
+                                    <option value="pack">Package</option>
+                                    <option value="can">Can</option>
+                                    <option value="bottle">Bottle</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="purchase_date" class="form-label">Purchase Date</label>
+                                <input type="text" class="form-control datepicker" id="purchase_date" name="purchase_date" placeholder="Select date">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="expiration_date" class="form-label">Expiration Date</label>
+                                <input type="text" class="form-control datepicker" id="expiration_date" name="expiration_date" placeholder="Select date">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="storage_location" class="form-label">Storage Location</label>
+                            <select class="form-select" id="storage_location" name="storage_location">
+                                <option value="">Select location</option>
+                                <option value="Refrigerator">Refrigerator</option>
+                                <option value="Freezer">Freezer</option>
+                                <option value="Pantry">Pantry</option>
+                                <option value="Spice Rack">Spice Rack</option>
+                                <option value="Cabinet">Cabinet</option>
+                                <option value="Counter">Counter</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Brand, special considerations, etc."></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('inventory_views.inventory_detail', inventory_id=inventory.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                                <i class="fas fa-save me-1"></i> Add to Inventory
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb me-2"></i> Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><i class="fas fa-calendar-alt text-warning me-2"></i> Expiration Dates</h6>
+                        <p class="small">
+                            Adding expiration dates helps track when items will go bad and enables recipe recommendations based on soon-to-expire ingredients.
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6><i class="fas fa-thermometer-half text-info me-2"></i> Storage Locations</h6>
+                        <p class="small">
+                            Specifying where each item is stored makes it easier to find ingredients when cooking and helps organize shopping lists.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h6><i class="fas fa-pencil-alt text-success me-2"></i> Notes</h6>
+                        <p class="small">
+                            Add notes for special details such as brand preferences, organic status, or specific varieties.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ingredient Modal -->
+<div class="modal fade" id="ingredientModal" tabindex="-1" aria-labelledby="ingredientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ingredientModalLabel">Select Ingredient</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="modalIngredientSearch" placeholder="Search ingredients..." autocomplete="off">
+                    <button class="btn btn-primary" type="button" id="searchIngredientBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="modalIngredientResults" class="list-group" style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize date pickers
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr('.datepicker', {
+            dateFormat: 'Y-m-d',
+            allowInput: true
+        });
+
+        // Ingredient search
+        const ingredientSearch = document.getElementById('ingredient_search');
+        const ingredientResults = document.getElementById('ingredient_results');
+        const ingredientIdInput = document.getElementById('ingredient_id');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // Modal search
+        const modalSearch = document.getElementById('modalIngredientSearch');
+        const modalResults = document.getElementById('modalIngredientResults');
+        const searchIngredientBtn = document.getElementById('searchIngredientBtn');
+        
+        // Function to search ingredients
+        async function searchIngredients(query, resultsContainer, isModal) {
+            if (query.length < 2) {
+                resultsContainer.innerHTML = '';
+                resultsContainer.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/ingredients/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                resultsContainer.innerHTML = '';
+                if (!data.success || !data.ingredients || data.ingredients.length === 0) {
+                    resultsContainer.innerHTML = `<div class="list-group-item">No ingredients found. Please try a different search.</div>`;
+                } else {
+                    data.ingredients.forEach(ingredient => {
+                        const item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = ingredient.name;
+                        
+                        item.addEventListener('click', () => {
+                            ingredientSearch.value = ingredient.name;
+                            ingredientIdInput.value = ingredient.id;
+                            ingredientResults.style.display = 'none';
+                            
+                            if (isModal) {
+                                // Close modal if we're in the modal
+                                const modal = bootstrap.Modal.getInstance(document.getElementById('ingredientModal'));
+                                modal.hide();
+                            }
+                            
+                            // Enable submit button
+                            submitBtn.disabled = false;
+                        });
+                        
+                        resultsContainer.appendChild(item);
+                    });
+                }
+                
+                resultsContainer.style.display = 'block';
+            } catch (error) {
+                console.error('Error searching ingredients:', error);
+            }
+        }
+        
+        // Input search event
+        ingredientSearch.addEventListener('input', function() {
+            searchIngredients(this.value, ingredientResults, false);
+        });
+        
+        // Modal search
+        searchIngredientBtn.addEventListener('click', function() {
+            searchIngredients(modalSearch.value, modalResults, true);
+        });
+        
+        modalSearch.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                searchIngredients(this.value, modalResults, true);
+            }
+        });
+        
+        // Hide results when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!ingredientSearch.contains(event.target) && !ingredientResults.contains(event.target)) {
+                ingredientResults.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

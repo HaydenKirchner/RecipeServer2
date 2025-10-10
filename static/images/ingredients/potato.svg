@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <title>Potato</title>
+  <g fill="none" stroke="#8B5A2B" stroke-width="2">
+    <!-- Potato shape -->
+    <ellipse cx="50" cy="60" rx="40" ry="30" fill="#D2B48C"/>
+    <!-- Eyes/dimples -->
+    <circle cx="30" cy="50" r="2" fill="#8B5A2B"/>
+    <circle cx="45" cy="70" r="2" fill="#8B5A2B"/>
+    <circle cx="65" cy="55" r="2" fill="#8B5A2B"/>
+    <circle cx="55" cy="45" r="2" fill="#8B5A2B"/>
+    <!-- Texture -->
+    <path d="M25,60 C30,55 35,65 40,60" stroke="#B58B50" stroke-width="1"/>
+    <path d="M45,50 C50,45 55,55 60,50" stroke="#B58B50" stroke-width="1"/>
+    <path d="M60,70 C65,65 70,75 75,70" stroke="#B58B50" stroke-width="1"/>
+    <!-- Small sprouts -->
+    <path d="M30,50 L28,45" stroke="#41924B" stroke-width="1.5"/>
+    <path d="M65,55 L68,50" stroke="#41924B" stroke-width="1.5"/>
+  </g>
+</svg>
