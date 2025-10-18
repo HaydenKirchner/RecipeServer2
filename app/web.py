@@ -19,7 +19,9 @@ from flask import (
 
 from werkzeug.datastructures import ImmutableMultiDict
 
-from database import Recipe, ShoppingList, ShoppingListItem
+from sqlalchemy.orm import selectinload
+
+from database import Inventory, MealPlan, Recipe, ShoppingList, ShoppingListItem
 from .services.meal_plan_service import MealPlanService
 from .services.recipe_service import RecipeService
 
@@ -132,6 +134,82 @@ def _get_services():
     recipe_service = RecipeService(session)
     meal_plan_service = MealPlanService(session)
     return session, recipe_service, meal_plan_service
+
+
+def _summarise_meal_plans(session) -> List[SimpleNamespace]:
+    """Return lightweight representations of the available meal plans."""
+
+    meal_plans: Sequence[MealPlan] = (
+        session.query(MealPlan)
+        .options(selectinload(MealPlan.shopping_list))
+        .order_by(MealPlan.created_at.desc())
+        .all()
+    )
+
+    summaries: List[SimpleNamespace] = []
+    for meal_plan in meal_plans:
+        summaries.append(
+            SimpleNamespace(
+                id=meal_plan.id,
+                name=meal_plan.name,
+                start_date=meal_plan.start_date,
+                end_date=meal_plan.end_date,
+                shopping_list_name=meal_plan.shopping_list.name if meal_plan.shopping_list else None,
+            )
+        )
+
+    return summaries
+
+
+def _summarise_shopping_lists(session) -> List[SimpleNamespace]:
+    """Return lightweight data for all shopping lists."""
+
+    shopping_lists: Sequence[ShoppingList] = (
+        session.query(ShoppingList)
+        .options(selectinload(ShoppingList.items), selectinload(ShoppingList.meal_plan))
+        .order_by(ShoppingList.created_at.desc())
+        .all()
+    )
+
+    summaries: List[SimpleNamespace] = []
+    for shopping_list in shopping_lists:
+        summaries.append(
+            SimpleNamespace(
+                id=shopping_list.id,
+                name=shopping_list.name,
+                created_at=shopping_list.created_at,
+                updated_at=shopping_list.updated_at,
+                item_count=len(shopping_list.items),
+                meal_plan_name=shopping_list.meal_plan.name if shopping_list.meal_plan else None,
+            )
+        )
+
+    return summaries
+
+
+def _summarise_inventories(session) -> List[SimpleNamespace]:
+    """Return lightweight data for available pantry inventories."""
+
+    inventories: Sequence[Inventory] = (
+        session.query(Inventory)
+        .options(selectinload(Inventory.items))
+        .order_by(Inventory.created_at.desc())
+        .all()
+    )
+
+    summaries: List[SimpleNamespace] = []
+    for inventory in inventories:
+        summaries.append(
+            SimpleNamespace(
+                id=inventory.id,
+                name=inventory.name,
+                created_at=inventory.created_at,
+                updated_at=inventory.updated_at,
+                item_count=len(inventory.items),
+            )
+        )
+
+    return summaries
 
 
 def _coerce_int(value: Optional[str]) -> Optional[int]:
@@ -298,6 +376,48 @@ def homepage():
         meal_plans=recent_meal_plans,
         shopping_lists=recent_lists,
     )
+
+
+@views_bp.route("/meal-plans", methods=["GET"])
+def meal_plans_overview():
+    """Display a simple overview of saved meal plans."""
+
+    session_factory = _get_session()
+    session = session_factory()
+    try:
+        meal_plans = _summarise_meal_plans(session)
+    finally:
+        session.close()
+
+    return render_template("meal_plans_overview.html", meal_plans=meal_plans)
+
+
+@views_bp.route("/shopping-lists", methods=["GET"])
+def shopping_lists_overview():
+    """Display the available shopping lists with basic metadata."""
+
+    session_factory = _get_session()
+    session = session_factory()
+    try:
+        shopping_lists = _summarise_shopping_lists(session)
+    finally:
+        session.close()
+
+    return render_template("shopping_lists_overview.html", shopping_lists=shopping_lists)
+
+
+@views_bp.route("/inventory", methods=["GET"])
+def inventory_overview():
+    """Display the inventories/pantries created by the user."""
+
+    session_factory = _get_session()
+    session = session_factory()
+    try:
+        inventories = _summarise_inventories(session)
+    finally:
+        session.close()
+
+    return render_template("inventory_overview.html", inventories=inventories)
 
 
 @views_bp.route("/recipes", methods=["GET"])

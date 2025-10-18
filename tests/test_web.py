@@ -27,6 +27,33 @@ def test_recipes_page_renders_successfully(client):
     assert b"Recipes" in response.data
 
 
+def test_meal_plans_overview_renders(client):
+    """The meal plans overview page should return successfully."""
+
+    response = client.get("/meal-plans")
+
+    assert response.status_code == 200
+    assert b"Meal Plans" in response.data
+
+
+def test_shopping_lists_overview_renders(client):
+    """The shopping lists overview page should return successfully."""
+
+    response = client.get("/shopping-lists")
+
+    assert response.status_code == 200
+    assert b"Shopping Lists" in response.data
+
+
+def test_inventory_overview_renders(client):
+    """The inventory overview page should return successfully."""
+
+    response = client.get("/inventory")
+
+    assert response.status_code == 200
+    assert b"Pantry Inventory" in response.data
+
+
 def test_add_recipe_form_renders(client):
     """The add recipe page should be accessible."""
 
