@@ -44,7 +44,7 @@ You can still run the application locally without Docker:
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-flask --app wsgi run --debug
+flask --app wsgi run --debug --port 5001
 ```
 
 ## Testing
