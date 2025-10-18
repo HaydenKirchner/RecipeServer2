@@ -4,7 +4,7 @@ services:
   recipeserver:
     build: .
     ports:
-      - "5000:5000"
+      - "5001:5001"
     environment:
       FLASK_CONFIG: production
       DATABASE_URL: sqlite:///data/recipes.db

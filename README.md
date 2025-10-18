@@ -13,7 +13,7 @@ This repository contains a Flask-based recipe planner application. The project n
    ```bash
    docker compose up --build
    ```
-2. Visit the application at [http://localhost:5000](http://localhost:5000).
+2. Visit the application at [http://localhost:5001](http://localhost:5001).
 
 The Compose configuration mounts the `data/` directory for the SQLite database and `static/pdfs/` for generated PDF files so they persist between container restarts.
 
@@ -21,7 +21,7 @@ The Compose configuration mounts the `data/` directory for the SQLite database a
 
 ```bash
 docker build -t recipeserver2:latest .
-docker run -p 5000:5000 \
+docker run -p 5001:5001 \
   -e FLASK_CONFIG=production \
   -e DATABASE_URL=sqlite:///data/recipes.db \
   -e SECRET_KEY=change-me \
