@@ -9,3 +9,12 @@ def test_homepage_renders_successfully(client):
 
     assert response.status_code == 200
     assert b"Welcome to Recipe Planner" in response.data
+
+
+def test_recipes_page_renders_successfully(client):
+    """The recipes catalogue should render without server errors."""
+
+    response = client.get("/recipes")
+
+    assert response.status_code == 200
+    assert b"Recipes" in response.data
