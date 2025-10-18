@@ -25,8 +25,8 @@ RUN adduser --disabled-password --gecos "" appuser \
 USER appuser
 
 ENV FLASK_CONFIG=production \
-    PORT=5000
+    PORT=5001
 
-EXPOSE 5000
+EXPOSE 5001
 
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "wsgi:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:5001", "wsgi:app"]

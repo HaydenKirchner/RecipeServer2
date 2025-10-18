@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Optional
 
 from flask import Flask
@@ -12,6 +13,10 @@ from sqlalchemy.pool import StaticPool
 from config import config_by_name
 from database import Base, get_tracked_test_engine
 from .routes import api_bp
+from .web import views_bp
+
+PACKAGE_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = PACKAGE_ROOT.parent
 
 LOGGER = logging.getLogger(__name__)
 
@@ -98,7 +103,14 @@ def _get_session_factory(app: Flask):
 def create_app(config_name: Optional[str] = None) -> Flask:
     """Application factory used by tests and production deployments."""
 
-    app = Flask(__name__, static_folder="static", template_folder="templates")
+    static_dir = PROJECT_ROOT / "static"
+    templates_dir = PROJECT_ROOT / "templates"
+
+    app = Flask(
+        __name__,
+        static_folder=str(static_dir),
+        template_folder=str(templates_dir),
+    )
 
     _ensure_extension_placeholders(app)
     _initialise_configuration(app, config_name)
@@ -115,6 +127,7 @@ def create_app(config_name: Optional[str] = None) -> Flask:
         if session_factory is not None:
             session_factory.remove()
 
+    app.register_blueprint(views_bp)
     app.register_blueprint(api_bp)
 
     LOGGER.info("Flask application created using '%s' configuration", (config_name or "default"))
