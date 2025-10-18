@@ -1,6 +1,13 @@
 """Tests for the user-facing web blueprint."""
 from __future__ import annotations
 
+from database import Recipe
+
+
+def _get_session(app):
+    session_factory = app.extensions["get_session_factory"]()
+    return session_factory()
+
 
 def test_homepage_renders_successfully(client):
     """The homepage should render without server errors."""
@@ -18,3 +25,91 @@ def test_recipes_page_renders_successfully(client):
 
     assert response.status_code == 200
     assert b"Recipes" in response.data
+
+
+def test_add_recipe_form_renders(client):
+    """The add recipe page should be accessible."""
+
+    response = client.get("/recipes/add")
+
+    assert response.status_code == 200
+    assert b"Add Recipe" in response.data
+
+
+def test_create_recipe_via_form(app, client):
+    """Submitting the add recipe form should create a recipe and redirect."""
+
+    form_data = {
+        "title": "Form Created Recipe",
+        "description": "Created from the form",
+        "instructions": "Step 1\nStep 2",
+        "prep_time": "10",
+        "cook_time": "20",
+        "servings": "4",
+        "ingredient_name": ["Flour", "Sugar"],
+        "ingredient_amount": ["2", "1.5"],
+        "ingredient_unit": ["cups", "cups"],
+    }
+
+    response = client.post("/recipes/add", data=form_data, follow_redirects=False)
+
+    assert response.status_code == 302
+
+    with app.app_context():
+        session = _get_session(app)
+        recipe = session.query(Recipe).filter_by(title="Form Created Recipe").one()
+        session.close()
+
+    assert f"/recipes/{recipe.id}" in response.headers["Location"]
+
+
+def test_edit_recipe_via_form(app, client):
+    """Editing an existing recipe via the form should persist changes."""
+
+    with app.app_context():
+        session = _get_session(app)
+        recipe = Recipe(title="Editable Recipe")
+        session.add(recipe)
+        session.commit()
+        recipe_id = recipe.id
+        session.close()
+
+    response = client.post(
+        f"/recipes/{recipe_id}/edit",
+        data={"title": "Updated Recipe", "ingredient_name": ["Sugar"], "ingredient_amount": ["1"], "ingredient_unit": ["cup"]},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert f"/recipes/{recipe_id}" in response.headers["Location"]
+
+    with app.app_context():
+        session = _get_session(app)
+        updated = session.get(Recipe, recipe_id)
+        session.close()
+
+    assert updated.title == "Updated Recipe"
+
+
+def test_delete_recipe_flow(app, client):
+    """Deleting a recipe via the form should remove it from the database."""
+
+    with app.app_context():
+        session = _get_session(app)
+        recipe = Recipe(title="Disposable Recipe")
+        session.add(recipe)
+        session.commit()
+        recipe_id = recipe.id
+        session.close()
+
+    response = client.post(f"/recipes/{recipe_id}/delete", follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/recipes" in response.headers["Location"]
+
+    with app.app_context():
+        session = _get_session(app)
+        deleted = session.get(Recipe, recipe_id)
+        session.close()
+
+    assert deleted is None

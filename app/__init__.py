@@ -13,7 +13,7 @@ from sqlalchemy.pool import StaticPool
 from config import config_by_name
 from database import Base, get_tracked_test_engine
 from .routes import api_bp
-from .web import web_bp
+from .web import views_bp
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 PROJECT_ROOT = PACKAGE_ROOT.parent
@@ -127,7 +127,7 @@ def create_app(config_name: Optional[str] = None) -> Flask:
         if session_factory is not None:
             session_factory.remove()
 
-    app.register_blueprint(web_bp)
+    app.register_blueprint(views_bp)
     app.register_blueprint(api_bp)
 
     LOGGER.info("Flask application created using '%s' configuration", (config_name or "default"))
