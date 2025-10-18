@@ -1,0 +1,24 @@
+name: Auto-Deploy to Local Docker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+
+      - name: Pull latest containers and rebuild
+        run: |
+          echo "Pulling latest code..."
+          git pull origin main
+          echo "Rebuilding and restarting Docker containers..."
+          docker-compose down
+          docker-compose up -d --build
+          echo "Cleaning up unused images..."
+          docker image prune -f
