@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  recipeserver:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_CONFIG: production
+      DATABASE_URL: sqlite:///data/recipes.db
+      SECRET_KEY: change-me
+    volumes:
+      - ./data:/app/data
+      - ./static/pdfs:/app/static/pdfs
+    restart: unless-stopped
