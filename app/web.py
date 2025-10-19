@@ -24,6 +24,7 @@ from sqlalchemy.orm import selectinload
 from database import Inventory, MealPlan, Recipe, ShoppingList, ShoppingListItem
 from .services.meal_plan_service import MealPlanService
 from .services.recipe_service import RecipeService
+from .services.scraper_service import ScraperService
 
 views_bp = Blueprint("views", __name__)
 
@@ -376,6 +377,61 @@ def homepage():
         meal_plans=recent_meal_plans,
         shopping_lists=recent_lists,
     )
+
+
+@views_bp.route("/scraper", methods=["GET", "POST"])
+def scraper():
+    """Display the recipe scraper and show previews when a URL is submitted."""
+
+    if request.method == "GET":
+        return render_template(
+            "scraper.html", recipe_data=None, recipe_payload=None, scrape_url=request.args.get("url")
+        )
+
+    url = (request.form.get("url") or "").strip()
+    if not url:
+        flash("Please provide a recipe URL to scrape.", "danger")
+        return render_template("scraper.html", recipe_data=None, recipe_payload=None, scrape_url=None)
+
+    try:
+        scraped_payload = ScraperService.scrape_recipe(url)
+    except ValueError as exc:
+        flash(str(exc), "danger")
+        return render_template("scraper.html", recipe_data=None, recipe_payload=None, scrape_url=url)
+
+    preview = _payload_to_preview(scraped_payload)
+    return render_template(
+        "scraper.html", recipe_data=preview, recipe_payload=scraped_payload, scrape_url=url
+    )
+
+
+@views_bp.route("/scraper/save", methods=["POST"])
+def save_scraped_recipe():
+    """Persist a scraped recipe using the submitted form data."""
+
+    payload = _collect_recipe_payload(request.form)
+    preview = _payload_to_preview(payload)
+    scrape_url = payload.get("source_url")
+
+    errors = _validate_recipe_payload(payload)
+    if errors:
+        for error in errors:
+            flash(error, "danger")
+        return render_template(
+            "scraper.html", recipe_data=preview, recipe_payload=payload, scrape_url=scrape_url
+        )
+
+    _session, recipe_service, _ = _get_services()
+    try:
+        recipe = recipe_service.create_recipe(payload)
+    except ValueError as exc:
+        flash(str(exc), "danger")
+        return render_template(
+            "scraper.html", recipe_data=preview, recipe_payload=payload, scrape_url=scrape_url
+        )
+
+    flash("Recipe saved from scraper.", "success")
+    return redirect(url_for("views.recipe_detail", recipe_id=recipe.id))
 
 
 @views_bp.route("/meal-plans", methods=["GET"])

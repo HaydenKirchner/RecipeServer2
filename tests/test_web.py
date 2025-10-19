@@ -140,3 +140,70 @@ def test_delete_recipe_flow(app, client):
         session.close()
 
     assert deleted is None
+
+
+def test_scraper_page_renders(client):
+    """The scraper page should render successfully."""
+
+    response = client.get("/scraper")
+
+    assert response.status_code == 200
+    assert b"Recipe Scraper" in response.data
+
+
+def test_scraper_submission_shows_preview(client, monkeypatch):
+    """Submitting a URL to the scraper should render a preview."""
+
+    sample_payload = {
+        "title": "Mocked Scraped Recipe",
+        "description": "Mocked description",
+        "ingredients": [
+            {"name": "Mocked Ingredient", "amount": 1.0, "unit": "cup"},
+        ],
+        "instructions": "1. Test instruction",
+        "prep_time": 5,
+        "cook_time": 10,
+        "servings": 2,
+        "image_url": "https://example.com/image.jpg",
+        "source_url": "https://example.com/recipe",
+        "nutrition": {"calories": 100},
+    }
+
+    from app.services.scraper_service import ScraperService
+
+    monkeypatch.setattr(ScraperService, "scrape_recipe", lambda url: sample_payload)
+
+    response = client.post("/scraper", data={"url": "https://example.com/recipe"})
+
+    assert response.status_code == 200
+    assert b"Mocked Scraped Recipe" in response.data
+    assert b"Mocked description" in response.data
+
+
+def test_scraper_save_creates_recipe(app, client):
+    """Saving a scraped recipe should persist the record and redirect."""
+
+    form_data = {
+        "title": "Saved Scraper Recipe",
+        "description": "Scraped via form",
+        "instructions": "Step 1\nStep 2",
+        "prep_time": "5",
+        "cook_time": "10",
+        "servings": "4",
+        "image_url": "https://example.com/recipe.jpg",
+        "source_url": "https://example.com/recipe",
+        "ingredient_name": "Sugar",
+        "ingredient_amount": "1",
+        "ingredient_unit": "cup",
+    }
+
+    response = client.post("/scraper/save", data=form_data, follow_redirects=False)
+
+    assert response.status_code == 302
+
+    with app.app_context():
+        session = _get_session(app)
+        recipe = session.query(Recipe).filter_by(title="Saved Scraper Recipe").one()
+        session.close()
+
+    assert f"/recipes/{recipe.id}" in response.headers["Location"]
