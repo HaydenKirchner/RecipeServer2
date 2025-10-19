@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from types import SimpleNamespace
 from typing import Any, Dict, List, Mapping, Optional, Sequence
 
@@ -21,7 +22,15 @@ from werkzeug.datastructures import ImmutableMultiDict
 
 from sqlalchemy.orm import selectinload
 
-from database import Inventory, MealPlan, Recipe, ShoppingList, ShoppingListItem
+from database import (
+    Ingredient,
+    Inventory,
+    InventoryItem,
+    MealPlan,
+    Recipe,
+    ShoppingList,
+    ShoppingListItem,
+)
 from .services.meal_plan_service import MealPlanService
 from .services.recipe_service import RecipeService
 from .services.scraper_service import ScraperService
@@ -211,6 +220,16 @@ def _summarise_inventories(session) -> List[SimpleNamespace]:
         )
 
     return summaries
+
+
+def _parse_date(value: Optional[str]):
+    if not value:
+        return None
+
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return None
 
 
 def _coerce_int(value: Optional[str]) -> Optional[int]:
@@ -474,6 +493,111 @@ def inventory_overview():
         session.close()
 
     return render_template("inventory_overview.html", inventories=inventories)
+
+
+@views_bp.route("/inventory/new", methods=["GET", "POST"])
+def add_inventory():
+    """Allow users to create a new named pantry inventory."""
+
+    if request.method == "GET":
+        return render_template("inventory_add.html")
+
+    name = (request.form.get("name") or "").strip()
+    if not name:
+        flash("Please provide a name for the inventory.", "danger")
+        return render_template("inventory_add.html")
+
+    session_factory = _get_session()
+    session = session_factory()
+    try:
+        inventory = Inventory(name=name)
+        session.add(inventory)
+        session.commit()
+        flash(f"Created inventory '{inventory.name}'.", "success")
+    finally:
+        session.close()
+
+    return redirect(url_for("views.inventory_overview"))
+
+
+@views_bp.route("/inventory/<int:inventory_id>", methods=["GET"])
+def inventory_detail(inventory_id: int):
+    """Display the items stored within a specific inventory."""
+
+    session_factory = _get_session()
+    session = session_factory()
+    try:
+        inventory = (
+            session.query(Inventory)
+            .options(selectinload(Inventory.items).selectinload(InventoryItem.ingredient))
+            .filter(Inventory.id == inventory_id)
+            .one_or_none()
+        )
+    finally:
+        session.close()
+
+    if inventory is None:
+        abort(404)
+
+    return render_template("inventory_detail.html", inventory=inventory)
+
+
+@views_bp.route("/inventory/<int:inventory_id>/items/new", methods=["GET", "POST"])
+def add_inventory_item(inventory_id: int):
+    """Add an ingredient item to an existing inventory."""
+
+    session_factory = _get_session()
+    session = session_factory()
+    try:
+        inventory = session.get(Inventory, inventory_id)
+        if inventory is None:
+            abort(404)
+
+        if request.method == "GET":
+            return render_template("inventory_add_item.html", inventory=inventory)
+
+        name = (request.form.get("ingredient_name") or "").strip()
+        if not name:
+            flash("Ingredient name is required.", "danger")
+            return render_template("inventory_add_item.html", inventory=inventory)
+
+        quantity = _coerce_float(request.form.get("quantity"))
+        unit = (request.form.get("unit") or "").strip() or None
+        purchase_date = _parse_date(request.form.get("purchase_date"))
+        expiration_date = _parse_date(request.form.get("expiration_date"))
+        storage_location = (request.form.get("storage_location") or "").strip() or None
+        notes = (request.form.get("notes") or "").strip() or None
+
+        existing_ingredient = (
+            session.query(Ingredient)
+            .filter(Ingredient.name.ilike(name))
+            .one_or_none()
+        )
+
+        if existing_ingredient is None:
+            ingredient = Ingredient(name=name)
+            session.add(ingredient)
+            session.flush()
+        else:
+            ingredient = existing_ingredient
+
+        item = InventoryItem(
+            inventory=inventory,
+            ingredient=ingredient,
+            quantity=quantity,
+            unit=unit,
+            purchase_date=purchase_date,
+            expiration_date=expiration_date,
+            storage_location=storage_location,
+            notes=notes,
+        )
+        session.add(item)
+        session.commit()
+        flash(f"Added {ingredient.name} to {inventory.name}.", "success")
+    finally:
+        session.close()
+
+    return redirect(url_for("views.inventory_detail", inventory_id=inventory_id))
 
 
 @views_bp.route("/recipes", methods=["GET"])

@@ -1,7 +1,7 @@
 """Tests for the user-facing web blueprint."""
 from __future__ import annotations
 
-from database import Recipe
+from database import Inventory, InventoryItem, Recipe
 
 
 def _get_session(app):
@@ -207,3 +207,53 @@ def test_scraper_save_creates_recipe(app, client):
         session.close()
 
     assert f"/recipes/{recipe.id}" in response.headers["Location"]
+
+
+def test_create_inventory_via_form(app, client):
+    """Submitting the inventory form should create a new pantry record."""
+
+    response = client.post("/inventory/new", data={"name": "Test Pantry"}, follow_redirects=False)
+
+    assert response.status_code == 302
+    assert "/inventory" in response.headers["Location"]
+
+    with app.app_context():
+        session = _get_session(app)
+        inventory = session.query(Inventory).filter_by(name="Test Pantry").one_or_none()
+        session.close()
+
+    assert inventory is not None
+
+
+def test_add_inventory_item_flow(app, client):
+    """Adding an item to an inventory should persist the association."""
+
+    with app.app_context():
+        session = _get_session(app)
+        inventory = Inventory(name="Form Pantry")
+        session.add(inventory)
+        session.commit()
+        inventory_id = inventory.id
+        session.close()
+
+    response = client.post(
+        f"/inventory/{inventory_id}/items/new",
+        data={
+            "ingredient_name": "Canned Beans",
+            "quantity": "3",
+            "unit": "cans",
+            "storage_location": "Pantry",
+        },
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    assert f"/inventory/{inventory_id}" in response.headers["Location"]
+
+    with app.app_context():
+        session = _get_session(app)
+        item = session.query(InventoryItem).filter_by(inventory_id=inventory_id).one()
+        ingredient_name = item.ingredient.name if item.ingredient else None
+        session.close()
+
+    assert ingredient_name == "Canned Beans"
