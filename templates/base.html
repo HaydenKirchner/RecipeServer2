@@ -39,10 +39,10 @@
                         <a class="nav-link {% if request.path == '/meal-plans' %}active{% endif %}" href="/meal-plans">Meal Plans</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if '/shopping-lists' in request.path %}active{% endif %}" href="{{ url_for('shopping_views.shopping_lists') }}">Shopping Lists</a>
+                        <a class="nav-link {% if '/shopping-lists' in request.path %}active{% endif %}" href="/shopping-lists">Shopping Lists</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if '/inventory' in request.path %}active{% endif %}" href="{{ url_for('inventory_views.inventories') }}">Inventory</a>
+                        <a class="nav-link {% if '/inventory' in request.path %}active{% endif %}" href="/inventory">Inventory</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/scraper' %}active{% endif %}" href="/scraper">Recipe Scraper</a>

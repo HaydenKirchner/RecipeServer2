@@ -20,7 +20,7 @@
         <button class="btn btn-sm btn-secondary" id="toggle-debug">Toggle Debug</button>
     </div>
     <div class="card-body" id="debug-content" style="display: none;">
-        <pre id="recipe-data-debug">{{ recipe_data|tojson(indent=2) }}</pre>
+        <pre id="recipe-data-debug">{{ (recipe_payload or {})|tojson(indent=2) }}</pre>
     </div>
 </div>
 {% endif %}
@@ -35,6 +35,7 @@
                 <form id="scraper-form" method="POST" action="/scraper">
                     <div class="input-group mb-3">
                         <input type="url" class="form-control" id="url" name="url" required
+                               value="{{ scrape_url or '' }}"
                                placeholder="Enter recipe URL (e.g., https://example.com/recipe)">
                         <button class="btn btn-primary" type="submit" id="scrape-button">
                             <i class="fas fa-search me-1"></i> Scrape Recipe
