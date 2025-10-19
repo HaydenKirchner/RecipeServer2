@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory - Recipe Planner{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">Pantry Inventory</h1>
+            <p class="text-muted mb-0">Track the ingredients you already have at home.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('views.add_inventory') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Create Inventory
+            </a>
+        </div>
+    </div>
+
+    {% if inventories %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for inventory in inventories %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h2 class="h5 mb-2">{{ inventory.name }}</h2>
+                    <p class="text-muted small mb-3">{{ inventory.item_count }} items tracked</p>
+                    <dl class="row small mb-0">
+                        <dt class="col-5">Created</dt>
+                        <dd class="col-7">
+                            {{ inventory.created_at.strftime('%Y-%m-%d') if inventory.created_at else 'Unknown' }}
+                        </dd>
+                        <dt class="col-5">Updated</dt>
+                        <dd class="col-7">
+                            {{ inventory.updated_at.strftime('%Y-%m-%d') if inventory.updated_at else 'Never' }}
+                        </dd>
+                    </dl>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('views.inventory_detail', inventory_id=inventory.id) }}" class="btn btn-outline-light flex-grow-1">
+                            View Items
+                        </a>
+                        <a href="{{ url_for('views.add_inventory_item', inventory_id=inventory.id) }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Add Item
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="fas fa-shopping-basket me-2"></i>
+        You haven't added any pantry inventories yet. Create one to start tracking your ingredients.
+    </div>
+    <div class="text-center">
+        <a href="{{ url_for('views.add_inventory') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create Your First Inventory
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

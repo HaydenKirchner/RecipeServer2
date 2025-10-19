@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Lists - Recipe Planner{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1">Shopping Lists</h1>
+            <p class="text-muted mb-0">Keep track of the ingredients you need on your next grocery trip.</p>
+        </div>
+    </div>
+
+    {% if shopping_lists %}
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col" class="text-center">Items</th>
+                    <th scope="col">Related Meal Plan</th>
+                    <th scope="col">Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for shopping_list in shopping_lists %}
+                <tr>
+                    <td class="fw-semibold">{{ shopping_list.name }}</td>
+                    <td class="text-center">{{ shopping_list.item_count }}</td>
+                    <td>
+                        {% if shopping_list.meal_plan_name %}
+                            {{ shopping_list.meal_plan_name }}
+                        {% else %}
+                            <span class="text-muted">Standalone</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if shopping_list.updated_at %}
+                            {{ shopping_list.updated_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            <span class="text-muted">Unknown</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="fas fa-clipboard-check me-2"></i>
+        No shopping lists have been created yet. Generate one from a meal plan or add items manually.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
